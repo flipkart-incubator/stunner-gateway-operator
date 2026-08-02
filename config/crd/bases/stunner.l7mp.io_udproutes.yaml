@@ -282,14 +282,14 @@ spec:
                 type: array
                 x-kubernetes-list-type: atomic
               rules:
-                description: Rules are a list of UDP matchers and actions.
+                description: Rules are a list of matchers and actions.
                 items:
-                  description: UDPRouteRule is the configuration for a given rule.
+                  description: RouteRule is the configuration for a given rule.
                   properties:
                     backendRefs:
                       description: |-
                         BackendRefs defines the backend(s) where matching requests should be
-                        sent. UDPRouteRules correctly handle port ranges.
+                        sent. RouteRules correctly handle port ranges.
                       items:
                         description: BackendRef defines how a Route should forward
                           a request to a Kubernetes resource.

@@ -126,14 +126,14 @@ var TestUDPRoute = stnrgwv1.UDPRoute{
 		Name:      "udproute-ok",
 		Namespace: "testnamespace",
 	},
-	Spec: stnrgwv1.UDPRouteSpec{
+	Spec: stnrgwv1.RouteSpec{
 		CommonRouteSpec: gwapiv1.CommonRouteSpec{
 			ParentRefs: []gwapiv1.ParentReference{{
 				Name:        "gateway-1",
 				SectionName: &TestSectionName,
 			}},
 		},
-		Rules: []stnrgwv1.UDPRouteRule{{
+		Rules: []stnrgwv1.RouteRule{{
 			BackendRefs: []stnrgwv1.BackendRef{{
 				BackendObjectReference: stnrgwv1.BackendObjectReference{
 					Name: gwapiv1.ObjectName("testservice-ok"),

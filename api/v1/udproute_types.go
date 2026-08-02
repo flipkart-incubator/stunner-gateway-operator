@@ -49,75 +49,25 @@ type UDPRoute struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	// Spec defines the desired state of UDPRoute.
-	Spec UDPRouteSpec `json:"spec"`
+	Spec RouteSpec `json:"spec"`
 
 	// Status defines the current state of UDPRoute.
 	Status gwapiv1a2.UDPRouteStatus `json:"status,omitempty"`
 }
 
-// UDPRouteSpec defines the desired state of UDPRoute.
-type UDPRouteSpec struct {
-	gwapiv1.CommonRouteSpec `json:",inline"`
-
-	// Rules are a list of UDP matchers and actions.
-	//
-	// +kubebuilder:validation:MinItems=1
-	// +kubebuilder:validation:MaxItems=16
-	Rules []UDPRouteRule `json:"rules"`
+// GetParentRefs returns the parent references of the route.
+func (r *UDPRoute) GetParentRefs() []gwapiv1.ParentReference {
+	return r.Spec.ParentRefs
 }
 
-// UDPRouteRule is the configuration for a given rule.
-type UDPRouteRule struct {
-	// BackendRefs defines the backend(s) where matching requests should be
-	// sent. UDPRouteRules correctly handle port ranges.
-	//
-	// +kubebuilder:validation:MinItems=1
-	// +kubebuilder:validation:MaxItems=16
-	BackendRefs []BackendRef `json:"backendRefs,omitempty"`
+// GetRules returns the rules of the route.
+func (r *UDPRoute) GetRules() []RouteRule {
+	return r.Spec.Rules
 }
 
-// BackendRef defines how a Route should forward a request to a Kubernetes resource.
-type BackendRef struct {
-	// BackendObjectReference references a Kubernetes object.
-	BackendObjectReference `json:",inline"`
-}
-
-type BackendObjectReference struct {
-	// Group is the group of the referent. For example, "gateway.networking.k8s.io".
-	// When unspecified or empty string, core API group is inferred.
-	//
-	// +optional
-	// +kubebuilder:default=""
-	Group *gwapiv1.Group `json:"group,omitempty"`
-
-	// Kind is the Kubernetes resource kind of the referent. For example
-	// "Service".
-	//
-	// +optional
-	// +kubebuilder:default=Service
-	Kind *gwapiv1.Kind `json:"kind,omitempty"`
-
-	// Name is the name of the referent.
-	Name gwapiv1.ObjectName `json:"name"`
-
-	// Namespace is the namespace of the backend. When unspecified, the local
-	// namespace is inferred.
-	//
-	// +optional
-	Namespace *gwapiv1.Namespace `json:"namespace,omitempty"`
-
-	// Port specifies the destination port number to use for this resource. If port is not
-	// specified, all ports are allowed. If port is defined but endPort is not, allow only
-	// access to the given port. If both are specified, allows access in the port-range [port,
-	// endPort] inclusive.
-	//
-	// +optional
-	Port *gwapiv1.PortNumber `json:"port,omitempty"`
-
-	// EndPort specifies the upper threshold of the port-range. Only considered of port is also specified.
-	//
-	// +optional
-	EndPort *gwapiv1.PortNumber `json:"endPort,omitempty"`
+// GetRouteStatus returns the route status of the route.
+func (r *UDPRoute) GetRouteStatus() *gwapiv1.RouteStatus {
+	return &r.Status.RouteStatus
 }
 
 // +kubebuilder:object:root=true
@@ -144,7 +94,7 @@ func ConvertV1A2UDPRouteToV1Into(src *gwapiv1a2.UDPRoute, dst *UDPRoute) {
 	src.Spec.CommonRouteSpec.DeepCopyInto(&dst.Spec.CommonRouteSpec)
 	src.Status.RouteStatus.DeepCopyInto(&dst.Status.RouteStatus)
 
-	dst.Spec.Rules = make([]UDPRouteRule, len(src.Spec.Rules))
+	dst.Spec.Rules = make([]RouteRule, len(src.Spec.Rules))
 	for i := range src.Spec.Rules {
 		dst.Spec.Rules[i].BackendRefs = make([]BackendRef, len(src.Spec.Rules[i].BackendRefs))
 		for j := range src.Spec.Rules[i].BackendRefs {
