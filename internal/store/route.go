@@ -1,8 +1,8 @@
 package store
 
 import (
-	gwapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	gwapiv1 "sigs.k8s.io/gateway-api/apis/v1"
 )
 
 // Route is a kind-agnostic handle on a STUNner route object (UDPRoute, TCPRoute, etc.): it

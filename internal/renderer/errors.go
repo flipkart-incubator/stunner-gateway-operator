@@ -31,6 +31,7 @@ const (
 	InvalidPortRange
 	PublicAddressNotFound
 	PublicListenerAddressNotFound
+	FeatureNotLicensed
 )
 
 type TypedError struct {
@@ -114,6 +115,8 @@ func (e *NonCriticalError) Error() string {
 		return "no public address found for gateway"
 	case PublicListenerAddressNotFound:
 		return "no public address found for one or more listeners"
+	case FeatureNotLicensed:
+		return "feature not available in the current license tier"
 	}
 	return "Unknown error"
 }

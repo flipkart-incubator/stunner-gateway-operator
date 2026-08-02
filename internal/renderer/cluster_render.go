@@ -3,6 +3,7 @@ package renderer
 import (
 	"fmt"
 
+	"github.com/go-logr/logr"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -14,12 +15,24 @@ import (
 	stnrgwv1 "github.com/l7mp/stunner-gateway-operator/api/v1"
 )
 
+var _ clusterRenderer = &defaultClusterRenderer{}
+
+type defaultClusterRenderer struct{ log logr.Logger }
+
+func newClusterRenderer(log logr.Logger) clusterRenderer {
+	return &defaultClusterRenderer{log: log}
+}
+
 // renderCluster renders a stunnerd cluster config for a route. The route kind determines the
-// cluster protocol and the rendering strategy.
-func (r *renderer) renderCluster(ro store.Route) (*stnrconfv1.ClusterConfig, error) {
+// cluster protocol and the rendering strategy. Rendering a TCPRoute into a TCP cluster is a
+// premium feature: here it fails non-critically, so that the route is still accepted and the
+// reason surfaces on its ResolvedRefs condition.
+func (r *defaultClusterRenderer) renderCluster(ro store.Route) (*stnrconfv1.ClusterConfig, error) {
 	switch ro := ro.(type) {
 	case *stnrgwv1.UDPRoute:
 		return r.renderServiceCluster(ro, ro.Spec.Rules, stnrconfv1.ClusterProtocolUDP)
+	case *stnrgwv1.TCPRoute:
+		return nil, NewNonCriticalError(FeatureNotLicensed)
 	default:
 		return nil, NewCriticalError(InternalError)
 	}
@@ -27,7 +40,7 @@ func (r *renderer) renderCluster(ro store.Route) (*stnrconfv1.ClusterConfig, err
 
 // renderServiceCluster renders a cluster config from a set of route rules whose backend
 // references resolve to Kubernetes Services or StaticServices.
-func (r *renderer) renderServiceCluster(ro store.Route, rs []stnrgwv1.RouteRule, proto stnrconfv1.ClusterProtocol) (*stnrconfv1.ClusterConfig, error) {
+func (r *defaultClusterRenderer) renderServiceCluster(ro store.Route, rs []stnrgwv1.RouteRule, proto stnrconfv1.ClusterProtocol) (*stnrconfv1.ClusterConfig, error) {
 	// track down the backendref
 	if len(rs) == 0 {
 		return nil, NewCriticalError(NoRuleFound)

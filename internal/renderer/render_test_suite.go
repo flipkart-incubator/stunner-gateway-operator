@@ -47,6 +47,8 @@ type renderTestConfig struct {
 	gws    []gwapiv1.Gateway
 	rs     []stnrgwv1.UDPRoute
 	rsV1A2 []stnrgwv1.UDPRoute // internal format is always ours, not v1a2
+	trs    []stnrgwv1.TCPRoute
+	trsV1  []stnrgwv1.TCPRoute // internal format is always ours, not gwapiv1
 	svcs   []corev1.Service
 	nodes  []corev1.Node
 	eps    []corev1.Endpoints
@@ -106,6 +108,16 @@ func renderTester(t *testing.T, testConf []renderTestConfig) {
 			store.UDPRoutesV1A2.Flush()
 			for i := range c.rsV1A2 {
 				store.UDPRoutesV1A2.Upsert(&c.rsV1A2[i])
+			}
+
+			store.TCPRoutes.Flush()
+			for i := range c.trs {
+				store.TCPRoutes.Upsert(&c.trs[i])
+			}
+
+			store.TCPRoutesV1.Flush()
+			for i := range c.trsV1 {
+				store.TCPRoutesV1.Upsert(&c.trsV1[i])
 			}
 
 			store.Services.Flush()

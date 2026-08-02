@@ -12,87 +12,64 @@ import (
 	stnrgwv1 "github.com/l7mp/stunner-gateway-operator/api/v1"
 )
 
-type UDPRouteLens struct {
-	stnrgwv1.UDPRoute `json:",inline"`
+// RouteLens is the lens for every route kind (STUNner-native and Gateway API UDPRoute and
+// TCPRoute): routes are all status-only from the operator's viewpoint and their status is exactly
+// a gwapiv1.RouteStatus, so one lens serves all four kinds.
+type RouteLens struct {
+	client.Object
 }
 
-func NewUDPRouteLens(ro *stnrgwv1.UDPRoute) *UDPRouteLens {
-	return &UDPRouteLens{UDPRoute: *ro.DeepCopy()}
+func NewRouteLens(ro client.Object) *RouteLens {
+	return &RouteLens{Object: ro.DeepCopyObject().(client.Object)}
 }
 
-func (l *UDPRouteLens) EqualResource(_ client.Object) bool {
+// routeStatus returns the RouteStatus of any supported route kind, or nil for non-route objects.
+func routeStatus(o client.Object) *gwapiv1.RouteStatus {
+	switch ro := o.(type) {
+	case *stnrgwv1.UDPRoute:
+		return &ro.Status.RouteStatus
+	case *gwapiv1a2.UDPRoute:
+		return &ro.Status.RouteStatus
+	case *stnrgwv1.TCPRoute:
+		return &ro.Status.RouteStatus
+	case *gwapiv1.TCPRoute:
+		return &ro.Status.RouteStatus
+	}
+	return nil
+}
+
+func (l *RouteLens) EqualResource(_ client.Object) bool {
 	return true
 }
 
-func (l *UDPRouteLens) ApplyToResource(_ client.Object) error {
+func (l *RouteLens) ApplyToResource(_ client.Object) error {
 	return nil
 }
 
-func (l *UDPRouteLens) EqualStatus(current client.Object) bool {
-	ro, ok := current.(*stnrgwv1.UDPRoute)
-	if !ok {
+func (l *RouteLens) EqualStatus(current client.Object) bool {
+	cs := routeStatus(current)
+	if cs == nil {
 		return false
 	}
 
-	return RouteStatusEqual(ro.Status.RouteStatus, l.Status.RouteStatus)
+	return RouteStatusEqual(*cs, *routeStatus(l.Object))
 }
 
-func (l *UDPRouteLens) ApplyToStatus(target client.Object) error {
-	ro, ok := target.(*stnrgwv1.UDPRoute)
-	if !ok {
-		return fmt.Errorf("udproute lens: invalid target type %T", target)
+func (l *RouteLens) ApplyToStatus(target client.Object) error {
+	ts := routeStatus(target)
+	if ts == nil {
+		return fmt.Errorf("route lens: invalid target type %T", target)
 	}
 
-	l.Status.DeepCopyInto(&ro.Status)
+	routeStatus(l.Object).DeepCopyInto(ts)
 	return nil
 }
 
-func (l *UDPRouteLens) DeepCopy() *UDPRouteLens {
-	return &UDPRouteLens{UDPRoute: *l.UDPRoute.DeepCopy()}
+func (l *RouteLens) DeepCopy() *RouteLens {
+	return &RouteLens{Object: l.Object.DeepCopyObject().(client.Object)}
 }
 
-func (l *UDPRouteLens) DeepCopyObject() runtime.Object { return l.DeepCopy() }
-
-type UDPRouteV1A2Lens struct {
-	gwapiv1a2.UDPRoute `json:",inline"`
-}
-
-func NewUDPRouteV1A2Lens(ro *gwapiv1a2.UDPRoute) *UDPRouteV1A2Lens {
-	return &UDPRouteV1A2Lens{UDPRoute: *ro.DeepCopy()}
-}
-
-func (l *UDPRouteV1A2Lens) EqualResource(_ client.Object) bool {
-	return true
-}
-
-func (l *UDPRouteV1A2Lens) ApplyToResource(_ client.Object) error {
-	return nil
-}
-
-func (l *UDPRouteV1A2Lens) EqualStatus(current client.Object) bool {
-	ro, ok := current.(*gwapiv1a2.UDPRoute)
-	if !ok {
-		return false
-	}
-
-	return RouteStatusEqual(ro.Status.RouteStatus, l.Status.RouteStatus)
-}
-
-func (l *UDPRouteV1A2Lens) ApplyToStatus(target client.Object) error {
-	ro, ok := target.(*gwapiv1a2.UDPRoute)
-	if !ok {
-		return fmt.Errorf("udproute-v1a2 lens: invalid target type %T", target)
-	}
-
-	l.Status.DeepCopyInto(&ro.Status)
-	return nil
-}
-
-func (l *UDPRouteV1A2Lens) DeepCopy() *UDPRouteV1A2Lens {
-	return &UDPRouteV1A2Lens{UDPRoute: *l.UDPRoute.DeepCopy()}
-}
-
-func (l *UDPRouteV1A2Lens) DeepCopyObject() runtime.Object { return l.DeepCopy() }
+func (l *RouteLens) DeepCopyObject() runtime.Object { return l.DeepCopy() }
 
 // RouteStatusEqual compares the status of two routes of any kind, ignoring differences in
 // condition timestamps and the representation of default-valued parent reference fields.

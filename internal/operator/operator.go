@@ -116,10 +116,10 @@ func (o *Operator) Start(ctx context.Context, cancel context.CancelFunc) error {
 	}
 	o.gwC = c
 
-	log.V(3).Info("Starting UDPRoute controller")
-	c, err = controllers.NewUDPRouteController(o.mgr, o.operatorCh, o.logger)
+	log.V(3).Info("Starting route controller")
+	c, err = controllers.NewRouteController(o.mgr, o.operatorCh, o.logger)
 	if err != nil {
-		return fmt.Errorf("Cannot register udproute controller: %w", err)
+		return fmt.Errorf("Cannot register route controller: %w", err)
 	}
 	o.rouC = c
 

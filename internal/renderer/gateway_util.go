@@ -111,6 +111,8 @@ func initGatewayStatus(gw *gwapiv1.Gateway, reason error) {
 	groupgwapiv1a2 := gwapiv1.Group(gwapiv1a2.GroupVersion.Group)
 	groupstnrv1 := gwapiv1.Group(stnrgwv1.GroupVersion.Group)
 
+	groupgwapiv1 := gwapiv1.Group(gwapiv1.GroupVersion.Group)
+
 	for _, l := range gw.Spec.Listeners {
 		gw.Status.Listeners = append(gw.Status.Listeners,
 			gwapiv1.ListenerStatus{
@@ -121,6 +123,12 @@ func initGatewayStatus(gw *gwapiv1.Gateway, reason error) {
 				}, {
 					Group: &groupstnrv1,
 					Kind:  gwapiv1.Kind("UDPRoute"),
+				}, {
+					Group: &groupgwapiv1,
+					Kind:  gwapiv1.Kind("TCPRoute"),
+				}, {
+					Group: &groupstnrv1,
+					Kind:  gwapiv1.Kind("TCPRoute"),
 				}},
 				Conditions: []metav1.Condition{},
 			})

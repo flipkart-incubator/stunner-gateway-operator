@@ -153,6 +153,10 @@ func emptyObjectFor(o client.Object) (client.Object, error) {
 		return &stnrgwv1.UDPRoute{ObjectMeta: meta}, nil
 	case *gwapiv1a2.UDPRoute:
 		return &gwapiv1a2.UDPRoute{ObjectMeta: meta}, nil
+	case *stnrgwv1.TCPRoute:
+		return &stnrgwv1.TCPRoute{ObjectMeta: meta}, nil
+	case *gwapiv1.TCPRoute:
+		return &gwapiv1.TCPRoute{ObjectMeta: meta}, nil
 	default:
 		return nil, fmt.Errorf("unsupported object type %T", o)
 	}

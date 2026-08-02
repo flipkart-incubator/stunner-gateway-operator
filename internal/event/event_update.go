@@ -16,6 +16,8 @@ type UpdateConf struct {
 	Gateways       store.Store
 	UDPRoutes      store.Store
 	UDPRoutesV1A2  store.Store
+	TCPRoutes      store.Store
+	TCPRoutesV1    store.Store
 	Services       store.Store
 	ConfigMaps     store.Store
 	Deployments    store.Store
@@ -41,6 +43,8 @@ func NewEventUpdate(generation int) *EventUpdate {
 			Gateways:       store.NewStore(),
 			UDPRoutes:      store.NewStore(),
 			UDPRoutesV1A2:  store.NewStore(),
+			TCPRoutes:      store.NewStore(),
+			TCPRoutesV1:    store.NewStore(),
 			Services:       store.NewStore(),
 			ConfigMaps:     store.NewStore(),
 			Deployments:    store.NewStore(),
@@ -51,6 +55,8 @@ func NewEventUpdate(generation int) *EventUpdate {
 			Gateways:       store.NewStore(),
 			UDPRoutes:      store.NewStore(),
 			UDPRoutesV1A2:  store.NewStore(),
+			TCPRoutes:      store.NewStore(),
+			TCPRoutesV1:    store.NewStore(),
 			Services:       store.NewStore(),
 			ConfigMaps:     store.NewStore(),
 			Deployments:    store.NewStore(),
@@ -69,16 +75,20 @@ func (e *EventUpdate) GetType() EventType {
 
 func (e *EventUpdate) String() string {
 	return fmt.Sprintf("%s (gen: %d, ack: %t, license: %s): upsert-queue: gway-cls: %d, gway: %d, "+
-		"route: %d, routeV1A2: %d, svc: %d, confmap: %d, dp: %d, ds: %d / "+
-		"delete-queue: gway-cls: %d, gway: %d, route: %d, routeV1A2: %d, "+
+		"udp-route: %d, udp-routeV1A2: %d, tcp-route: %d, tcp-routeV1: %d, "+
+		"svc: %d, confmap: %d, dp: %d, ds: %d / "+
+		"delete-queue: gway-cls: %d, gway: %d, udp-route: %d, udp-routeV1A2: %d, "+
+		"tcp-route: %d, tcp-routeV1: %d, "+
 		"svc: %d, confmap: %d, dp: %d, ds: %d / config-queue: %d",
 		e.Type.String(), e.Generation, e.RequestAck, e.LicenseStatus.String(),
 		e.UpsertQueue.GatewayClasses.Len(), e.UpsertQueue.Gateways.Len(),
 		e.UpsertQueue.UDPRoutes.Len(), e.UpsertQueue.UDPRoutesV1A2.Len(),
+		e.UpsertQueue.TCPRoutes.Len(), e.UpsertQueue.TCPRoutesV1.Len(),
 		e.UpsertQueue.Services.Len(), e.UpsertQueue.ConfigMaps.Len(),
 		e.UpsertQueue.Deployments.Len(), e.UpsertQueue.DaemonSets.Len(),
 		e.DeleteQueue.GatewayClasses.Len(), e.DeleteQueue.Gateways.Len(),
 		e.DeleteQueue.UDPRoutes.Len(), e.DeleteQueue.UDPRoutesV1A2.Len(),
+		e.DeleteQueue.TCPRoutes.Len(), e.DeleteQueue.TCPRoutesV1.Len(),
 		e.DeleteQueue.Services.Len(), e.DeleteQueue.ConfigMaps.Len(),
 		e.DeleteQueue.Deployments.Len(), e.DeleteQueue.DaemonSets.Len(),
 		len(e.ConfigQueue))
@@ -94,6 +104,8 @@ func (e *EventUpdate) DeepCopy() *EventUpdate {
 	u.UpsertQueue.Gateways = deepCopyStore(q.Gateways)
 	u.UpsertQueue.UDPRoutes = deepCopyStore(q.UDPRoutes)
 	u.UpsertQueue.UDPRoutesV1A2 = deepCopyStore(q.UDPRoutesV1A2)
+	u.UpsertQueue.TCPRoutes = deepCopyStore(q.TCPRoutes)
+	u.UpsertQueue.TCPRoutesV1 = deepCopyStore(q.TCPRoutesV1)
 	u.UpsertQueue.Services = deepCopyStore(q.Services)
 	u.UpsertQueue.ConfigMaps = deepCopyStore(q.ConfigMaps)
 	u.UpsertQueue.Deployments = deepCopyStore(q.Deployments)
@@ -104,6 +116,8 @@ func (e *EventUpdate) DeepCopy() *EventUpdate {
 	u.DeleteQueue.Gateways = deepCopyStore(q.Gateways)
 	u.DeleteQueue.UDPRoutes = deepCopyStore(q.UDPRoutes)
 	u.DeleteQueue.UDPRoutesV1A2 = deepCopyStore(q.UDPRoutesV1A2)
+	u.DeleteQueue.TCPRoutes = deepCopyStore(q.TCPRoutes)
+	u.DeleteQueue.TCPRoutesV1 = deepCopyStore(q.TCPRoutesV1)
 	u.DeleteQueue.Services = deepCopyStore(q.Services)
 	u.DeleteQueue.ConfigMaps = deepCopyStore(q.ConfigMaps)
 	u.DeleteQueue.Deployments = deepCopyStore(q.Deployments)

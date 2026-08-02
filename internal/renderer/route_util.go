@@ -35,6 +35,19 @@ func (r *renderer) allRoutes() []store.Route {
 		ret = append(ret, uv1a2)
 	}
 
+	for _, ro := range store.TCPRoutes.GetAll() {
+		ret = append(ret, ro)
+	}
+
+	for _, tv1 := range store.TCPRoutesV1.GetAll() {
+		if isRouteMasked(tv1) {
+			r.log.Info("Ignoring gwapiv1.TCPRoute masking a stunnerv1.TCPRoute:",
+				"name", tv1.GetName(), "namespace", tv1.GetNamespace())
+			continue
+		}
+		ret = append(ret, tv1)
+	}
+
 	return ret
 }
 
@@ -104,6 +117,11 @@ func resolveParentRef(ro store.Route, p *gwapiv1.ParentReference, gw *gwapiv1.Ga
 		return false, msg
 	}
 
+	allowed, msg = gatewayAllowsKind(ro, l)
+	if !allowed {
+		return false, msg
+	}
+
 	if p.SectionName != nil && *p.SectionName != l.Name {
 		return false, fmt.Sprintf("parent SectionName %q does not match listener name %q",
 			string(*p.SectionName), l.Name)
@@ -160,6 +178,42 @@ func gatewayAllowsSameNamespace(ro store.Route, gw *gwapiv1.Gateway) (bool, stri
 			gw.GetName(), gw.GetNamespace(), ro.GetName(), ro.GetNamespace())
 	}
 	return true, ""
+}
+
+// gatewayAllowsKind checks the route kind against the AllowedRoutes.Kinds attachment policy of
+// the listener. An empty policy admits every route kind.
+func gatewayAllowsKind(ro store.Route, l *gwapiv1.Listener) (bool, string) {
+	if l.AllowedRoutes == nil || len(l.AllowedRoutes.Kinds) == 0 {
+		return true, ""
+	}
+
+	kind := routeKind(ro)
+	for _, k := range l.AllowedRoutes.Kinds {
+		if k.Kind != kind {
+			continue
+		}
+		// both the Gateway API and the STUNner group are accepted, an unset group
+		// defaults to the Gateway API group
+		if k.Group == nil || *k.Group == gwapiv1.Group(gwapiv1.GroupVersion.Group) ||
+			*k.Group == gwapiv1.Group(stnrgwv1.GroupVersion.Group) {
+			return true, ""
+		}
+	}
+
+	return false, fmt.Sprintf("listener %q (route kind attachment policy) rejects route kind %q",
+		l.Name, kind)
+}
+
+// routeKind returns the Gateway API kind of a route.
+func routeKind(ro store.Route) gwapiv1.Kind {
+	switch ro.(type) {
+	case *stnrgwv1.UDPRoute:
+		return gwapiv1.Kind("UDPRoute")
+	case *stnrgwv1.TCPRoute:
+		return gwapiv1.Kind("TCPRoute")
+	default:
+		return gwapiv1.Kind("")
+	}
 }
 
 func initRouteStatus(ro store.Route) {
@@ -279,7 +333,15 @@ func (r *renderer) getParentGateway(ro store.Route, p *gwapiv1.ParentReference) 
 
 // invalidateMaskedRoutes invalidates the masked Gateway API routes.
 func (r *renderer) invalidateMaskedRoutes(c *RenderContext) {
+	maskable := []store.Route{}
 	for _, ro := range store.UDPRoutesV1A2.GetAll() {
+		maskable = append(maskable, ro)
+	}
+	for _, ro := range store.TCPRoutesV1.GetAll() {
+		maskable = append(maskable, ro)
+	}
+
+	for _, ro := range maskable {
 		if !isRouteMasked(ro) || !r.isRouteControlled(ro) {
 			continue
 		}
@@ -301,11 +363,19 @@ func (r *renderer) invalidateMaskedRoutes(c *RenderContext) {
 // route's original API object kind. Note that the same route may be processed several times, in
 // the context of different Gateways: Upsert makes sure the last render will be updated.
 func queueRouteStatusUpdate(c *RenderContext, ro store.Route) {
-	switch {
-	case isRouteV1A2(ro):
-		c.update.UpsertQueue.UDPRoutesV1A2.Upsert(statusTargetV1A2UDPRoute(ro.(*stnrgwv1.UDPRoute)))
-	default:
-		c.update.UpsertQueue.UDPRoutes.Upsert(ro.DeepCopyObject().(client.Object))
+	switch ro := ro.(type) {
+	case *stnrgwv1.UDPRoute:
+		if isRouteV1A2(ro) {
+			c.update.UpsertQueue.UDPRoutesV1A2.Upsert(statusTargetV1A2UDPRoute(ro))
+		} else {
+			c.update.UpsertQueue.UDPRoutes.Upsert(ro.DeepCopy())
+		}
+	case *stnrgwv1.TCPRoute:
+		if isRouteTCPV1(ro) {
+			c.update.UpsertQueue.TCPRoutesV1.Upsert(statusTargetV1TCPRoute(ro))
+		} else {
+			c.update.UpsertQueue.TCPRoutes.Upsert(ro.DeepCopy())
+		}
 	}
 }
 
@@ -317,6 +387,16 @@ func queueRouteStatusUpdate(c *RenderContext, ro store.Route) {
 // cluster. This adapter converts canonical route status to that bearer type.
 func statusTargetV1A2UDPRoute(ro *stnrgwv1.UDPRoute) *gwapiv1a2.UDPRoute {
 	ret := &gwapiv1a2.UDPRoute{}
+	ret.SetName(ro.GetName())
+	ret.SetNamespace(ro.GetNamespace())
+	ro.Status.DeepCopyInto(&ret.Status)
+	return ret
+}
+
+// statusTargetV1TCPRoute builds a Gateway API v1 bearer object for TCPRoute status updates (see
+// statusTargetV1A2UDPRoute).
+func statusTargetV1TCPRoute(ro *stnrgwv1.TCPRoute) *gwapiv1.TCPRoute {
+	ret := &gwapiv1.TCPRoute{}
 	ret.SetName(ro.GetName())
 	ret.SetNamespace(ro.GetNamespace())
 	ro.Status.DeepCopyInto(&ret.Status)
@@ -376,12 +456,18 @@ func setRouteConditionStatus(ro store.Route, p *gwapiv1.ParentReference, control
 	var resolvedCond metav1.Condition
 	if backendErr != nil {
 		var reason gwapiv1.RouteConditionReason
+		message := "at least one backend reference failed to be successfully resolved"
 		switch {
 		case IsNonCriticalError(backendErr, InvalidBackendKind), IsNonCriticalError(backendErr, InvalidBackendGroup):
 			// "RouteReasonInvalidKind" is used with the "ResolvedRefs" condition when
 			// one of the Route's rules has a reference to an unknown or unsupported
 			// Group and/or Kind.
 			reason = gwapiv1.RouteReasonInvalidKind
+		case IsNonCriticalError(backendErr, FeatureNotLicensed):
+			// the route kind itself is unavailable in the current license tier, so no
+			// cluster is rendered for it at all
+			reason = gwapiv1.RouteReasonUnsupportedValue
+			message = "route kind not available in the current license tier"
 		default:
 			reason = gwapiv1.RouteReasonBackendNotFound
 		}
@@ -391,7 +477,7 @@ func setRouteConditionStatus(ro store.Route, p *gwapiv1.ParentReference, control
 			ObservedGeneration: ro.GetGeneration(),
 			LastTransitionTime: metav1.Now(),
 			Reason:             string(reason),
-			Message:            "at least one backend reference failed to be successfully resolved",
+			Message:            message,
 		}
 	} else {
 		resolvedCond = metav1.Condition{
@@ -433,6 +519,20 @@ func isRouteV1A2(ro client.Object) bool {
 	return store.UDPRoutesV1A2.Get(store.GetNamespacedName(ro)) == ro
 }
 
+// check by pointer: namespacedname is not unique across stunnerv1 and gwapiv1 routes
+func isRouteTCPV1(ro client.Object) bool {
+	return store.TCPRoutesV1.Get(store.GetNamespacedName(ro)) == ro
+}
+
+// isRouteMasked returns true for a Gateway API route that is overridden by a STUNner-native route
+// of the same kind, namespace and name.
 func isRouteMasked(ro client.Object) bool {
-	return isRouteV1A2(ro) && store.UDPRoutes.Get(store.GetNamespacedName(ro)) != nil
+	switch {
+	case isRouteV1A2(ro):
+		return store.UDPRoutes.Get(store.GetNamespacedName(ro)) != nil
+	case isRouteTCPV1(ro):
+		return store.TCPRoutes.Get(store.GetNamespacedName(ro)) != nil
+	default:
+		return false
+	}
 }

@@ -34,10 +34,8 @@ func New(o client.Object) (Lens, error) {
 		return NewGatewayClassLens(current), nil
 	case *gwapiv1.Gateway:
 		return NewGatewayLens(current), nil
-	case *stnrgwv1.UDPRoute:
-		return NewUDPRouteLens(current), nil
-	case *gwapiv1a2.UDPRoute:
-		return NewUDPRouteV1A2Lens(current), nil
+	case *stnrgwv1.UDPRoute, *gwapiv1a2.UDPRoute, *stnrgwv1.TCPRoute, *gwapiv1.TCPRoute:
+		return NewRouteLens(o), nil
 	default:
 		return nil, fmt.Errorf("unsupported object type %T", o)
 	}

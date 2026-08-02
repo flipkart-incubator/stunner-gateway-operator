@@ -33,6 +33,13 @@ type configRenderer interface {
 	render(c *RenderContext, args ...any) (stnrconfv1.Config, error)
 }
 
+// clusterRenderer is the interface for the component that renders the dataplane cluster config of
+// a route. It is separate from configRenderer because a cluster is rendered per route rather than
+// per Gateway, so it takes the route instead of a RenderContext.
+type clusterRenderer interface {
+	renderCluster(ro store.Route) (*stnrconfv1.ClusterConfig, error)
+}
+
 // resourceGenerator is a generic interface for the generator components that can create K8s
 // resources.
 type resourceGenerator interface {
@@ -50,6 +57,7 @@ type renderer struct {
 	scheme                                        *runtime.Scheme
 	licmgr                                        licensemgr.Manager
 	adminRenderer, authRenderer, listenerRenderer configRenderer
+	clusterRenderer                               clusterRenderer
 	dataplaneGenerator                            resourceGenerator
 	gen                                           int
 	renderCh                                      chan event.Event
@@ -66,6 +74,7 @@ func NewDefaultRenderer(cfg RendererConfig) Renderer {
 		adminRenderer:      newAdminRenderer(),
 		authRenderer:       newAuthRenderer(),
 		listenerRenderer:   newListenerRenderer(cfg.Logger.WithName("listener-renderer")),
+		clusterRenderer:    newClusterRenderer(cfg.Logger.WithName("cluster-renderer")),
 		dataplaneGenerator: newDataplaneGenerator(cfg.Scheme),
 		renderCh:           make(chan event.Event, 10),
 		gen:                0,
@@ -170,6 +179,11 @@ func (r *renderer) renderListener(c *RenderContext, l *gwapiv1.Listener, rs []st
 		return nil, err
 	}
 	return conf.(*stnrconfv1.ListenerConfig), nil
+}
+
+// renderCluster is a wrapper for clusterRenderer.renderCluster()
+func (r *renderer) renderCluster(ro store.Route) (*stnrconfv1.ClusterConfig, error) {
+	return r.clusterRenderer.renderCluster(ro)
 }
 
 // generateDataplane is a wrapper for dataplaneGenerator.generate()

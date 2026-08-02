@@ -29,6 +29,7 @@ var (
 	TestLabelName        = "testlabel"
 	TestLabelValue       = "testvalue"
 	TestSectionName      = gwapiv1.SectionName("gateway-1-listener-udp")
+	TestSectionNameTCP   = gwapiv1.SectionName("gateway-1-listener-tcp")
 	TestCert64           = "dGVzdGNlcnQ=" // "testcert"
 	TestKey64            = "dGVzdGtleQ==" // "testkey"
 	TestReplicas         = int32(3)
@@ -139,6 +140,29 @@ var TestUDPRoute = stnrgwv1.UDPRoute{
 					Name: gwapiv1.ObjectName("testservice-ok"),
 					// Port:    &TestPort,
 					// EndPort: &TestEndPort,
+				},
+			}},
+		}},
+	},
+}
+
+// TCPRoute
+var TestTCPRoute = stnrgwv1.TCPRoute{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      "tcproute-ok",
+		Namespace: "testnamespace",
+	},
+	Spec: stnrgwv1.RouteSpec{
+		CommonRouteSpec: gwapiv1.CommonRouteSpec{
+			ParentRefs: []gwapiv1.ParentReference{{
+				Name:        "gateway-1",
+				SectionName: &TestSectionNameTCP,
+			}},
+		},
+		Rules: []stnrgwv1.RouteRule{{
+			BackendRefs: []stnrgwv1.BackendRef{{
+				BackendObjectReference: stnrgwv1.BackendObjectReference{
+					Name: gwapiv1.ObjectName("testservice-ok"),
 				},
 			}},
 		}},
