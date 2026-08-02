@@ -4091,4 +4091,6 @@ func testManagedMode() {
 			config.EnableRelayToClusterIP = opdefault.DefaultEnableRelayToClusterIP
 		})
 	})
+
+	testTCPRouteManaged()
 }

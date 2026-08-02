@@ -4304,4 +4304,6 @@ func testLegacyMode() {
 			config.EnableEndpointDiscovery = opdefault.DefaultEnableEndpointDiscovery
 		})
 	})
+
+	testTCPRouteLegacy()
 }

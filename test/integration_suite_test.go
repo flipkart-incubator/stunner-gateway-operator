@@ -19,7 +19,7 @@ package integration
 import (
 	"context"
 	"fmt"
-	"math/rand"
+	"net"
 	"os"
 	"path/filepath"
 	"testing"
@@ -201,7 +201,12 @@ func initOperator(mgrCtx, opCtx context.Context) {
 		Logger:  ctrl.Log,
 	})
 
-	cdsPort := rand.Intn(1<<15) + 1<<15
+	// let the kernel pick a free port: a blind random port may collide with the ephemeral
+	// sockets of a previous test phase
+	cdsProbe, err := net.Listen("tcp", "127.0.0.1:0")
+	Expect(err).NotTo(HaveOccurred())
+	cdsPort := cdsProbe.Addr().(*net.TCPAddr).Port
+	Expect(cdsProbe.Close()).To(Succeed())
 	cdsBindAddr := fmt.Sprintf(":%d", cdsPort)
 	cdsServerAddr = fmt.Sprintf("127.0.0.1:%d", cdsPort)
 	config.ConfigDiscoveryAddress = fmt.Sprintf("127.0.0.1:%d", cdsPort)
