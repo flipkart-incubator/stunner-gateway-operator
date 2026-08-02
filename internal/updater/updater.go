@@ -155,7 +155,7 @@ func (u *Updater) ProcessUpdate(e *event.EventUpdate) error {
 		}
 	}
 
-	for _, o := range q.UDPRoutesV1A2.Objects() {
+	for _, o := range q.UDPRoutesGwAPI.Objects() {
 		if err := u.updateStatusObject(o, gen); err != nil {
 			u.log.Error(err, "Cannot update UDPRouteV1A2 status", "route", store.DumpObject(o))
 		}
@@ -167,7 +167,7 @@ func (u *Updater) ProcessUpdate(e *event.EventUpdate) error {
 		}
 	}
 
-	for _, o := range q.TCPRoutesV1.Objects() {
+	for _, o := range q.TCPRoutesGwAPI.Objects() {
 		if err := u.updateStatusObject(o, gen); err != nil {
 			u.log.Error(err, "Cannot update TCPRouteV1 status", "route", store.DumpObject(o))
 		}
@@ -231,7 +231,7 @@ func (u *Updater) ProcessUpdate(e *event.EventUpdate) error {
 		}
 	}
 
-	for _, ro := range q.UDPRoutesV1A2.Objects() {
+	for _, ro := range q.UDPRoutesGwAPI.Objects() {
 		if err := u.deleteObject(ro, gen); err != nil && !apierrors.IsNotFound(err) {
 			u.log.V(1).Info("Cannot delete UDPRouteV1A2", "route",
 				store.DumpObject(ro), "error", err)
@@ -247,7 +247,7 @@ func (u *Updater) ProcessUpdate(e *event.EventUpdate) error {
 		}
 	}
 
-	for _, ro := range q.TCPRoutesV1.Objects() {
+	for _, ro := range q.TCPRoutesGwAPI.Objects() {
 		if err := u.deleteObject(ro, gen); err != nil && !apierrors.IsNotFound(err) {
 			u.log.V(1).Info("Cannot delete TCPRouteV1", "route",
 				store.DumpObject(ro), "error", err)

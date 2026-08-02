@@ -79,13 +79,13 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 		},
 		{
-			name:   "backend found for V1A2 route - legacy endpoints controller",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rsV1A2: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			svcs:   []corev1.Service{testutils.TestSvc},
-			eps:    []corev1.Endpoints{testutils.TestEndpoint},
+			name:    "backend found for V1A2 route - legacy endpoints controller",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rsGwAPI: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			svcs:    []corev1.Service{testutils.TestSvc},
+			eps:     []corev1.Endpoints{testutils.TestEndpoint},
 			prep: func(c *renderTestConfig) {
 				s1 := testutils.TestSvc.DeepCopy()
 				s1.Spec.ClusterIP = "1.1.1.1"
@@ -108,13 +108,13 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 		},
 		{
-			name:   "backend found for V1A2 route",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rsV1A2: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			svcs:   []corev1.Service{testutils.TestSvc},
-			esls:   []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
+			name:    "backend found for V1A2 route",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rsGwAPI: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			svcs:    []corev1.Service{testutils.TestSvc},
+			esls:    []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
 			prep: func(c *renderTestConfig) {
 				s1 := testutils.TestSvc.DeepCopy()
 				s1.Spec.ClusterIP = "1.1.1.1"
@@ -595,13 +595,13 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 		},
 		{
-			name:   "eds - cluster for UDPRouteV1A2 and ClusterIP ok",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rsV1A2: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			svcs:   []corev1.Service{testutils.TestSvc},
-			esls:   []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
+			name:    "eds - cluster for UDPRouteV1A2 and ClusterIP ok",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rsGwAPI: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			svcs:    []corev1.Service{testutils.TestSvc},
+			esls:    []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
 			prep: func(c *renderTestConfig) {
 				s := testutils.TestSvc.DeepCopy()
 				s.Spec.ClusterIP = "4.3.2.1"
@@ -980,7 +980,7 @@ func TestRenderClusterRender(t *testing.T) {
 				udp.Spec.Rules[0].BackendRefs[1].Namespace = &ns
 				udp.Spec.Rules[0].BackendRefs[1].Name = "testservice-ok-1"
 				udp.Spec.Rules[0].BackendRefs[2].Name = "testservice-ok-2"
-				c.rsV1A2 = []stnrgwv1.UDPRoute{*udp}
+				c.rsGwAPI = []stnrgwv1.UDPRoute{*udp}
 
 				s1 := testutils.TestSvc.DeepCopy()
 				s1.SetNamespace("dummy-ns")

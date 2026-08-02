@@ -20,6 +20,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	gwapiv1 "sigs.k8s.io/gateway-api/apis/v1"
+	gwapiv1a2 "sigs.k8s.io/gateway-api/apis/v1alpha2"
 )
 
 func init() {
@@ -82,81 +83,39 @@ type TCPRouteList struct {
 	Items           []TCPRoute `json:"items"`
 }
 
-// conversions
+// ConvertV1TCPRouteToStnrV1 converts a graduated Gateway API v1 TCPRoute to the STUNner-native
+// representation, dropping the unsupported upstream backend-reference fields (see
+// convertBackendRefs).
 func ConvertV1TCPRouteToStnrV1(src *gwapiv1.TCPRoute) *TCPRoute {
 	if src == nil {
 		return nil
 	}
 	dst := new(TCPRoute)
-	ConvertV1TCPRouteToStnrV1Into(src, dst)
-	return dst
-}
-
-func ConvertV1TCPRouteToStnrV1Into(src *gwapiv1.TCPRoute, dst *TCPRoute) {
 	src.ObjectMeta.DeepCopyInto(&dst.ObjectMeta)
 	src.Spec.CommonRouteSpec.DeepCopyInto(&dst.Spec.CommonRouteSpec)
 	src.Status.RouteStatus.DeepCopyInto(&dst.Status.RouteStatus)
 
 	dst.Spec.Rules = make([]RouteRule, len(src.Spec.Rules))
 	for i := range src.Spec.Rules {
-		dst.Spec.Rules[i].BackendRefs = make([]BackendRef, len(src.Spec.Rules[i].BackendRefs))
-		for j := range src.Spec.Rules[i].BackendRefs {
-			b := src.Spec.Rules[i].BackendRefs[j].BackendObjectReference
-			dst.Spec.Rules[i].BackendRefs[j].BackendObjectReference = BackendObjectReference{
-				Group:     b.Group,
-				Kind:      b.Kind,
-				Name:      b.Name,
-				Namespace: b.Namespace,
-				// ignore port and weight!
-			}
-		}
+		dst.Spec.Rules[i].BackendRefs = convertBackendRefs(src.Spec.Rules[i].BackendRefs)
 	}
-}
-
-func ConvertStnrV1TCPRouteToV1(src *TCPRoute) *gwapiv1.TCPRoute {
-	if src == nil {
-		return nil
-	}
-	dst := new(gwapiv1.TCPRoute)
-	ConvertStnrV1TCPRouteToV1Into(src, dst)
 	return dst
 }
 
-func ConvertStnrV1TCPRouteToV1Into(src *TCPRoute, dst *gwapiv1.TCPRoute) {
+// ConvertV1A2TCPRouteToStnrV1 converts a deprecated Gateway API v1alpha2 TCPRoute to the
+// STUNner-native representation (see ConvertV1TCPRouteToStnrV1).
+func ConvertV1A2TCPRouteToStnrV1(src *gwapiv1a2.TCPRoute) *TCPRoute {
+	if src == nil {
+		return nil
+	}
+	dst := new(TCPRoute)
 	src.ObjectMeta.DeepCopyInto(&dst.ObjectMeta)
 	src.Spec.CommonRouteSpec.DeepCopyInto(&dst.Spec.CommonRouteSpec)
 	src.Status.RouteStatus.DeepCopyInto(&dst.Status.RouteStatus)
 
-	dst.Spec.Rules = make([]gwapiv1.TCPRouteRule, len(src.Spec.Rules))
+	dst.Spec.Rules = make([]RouteRule, len(src.Spec.Rules))
 	for i := range src.Spec.Rules {
-		dst.Spec.Rules[i].BackendRefs = make([]gwapiv1.BackendRef, len(src.Spec.Rules[i].BackendRefs))
-		for j := range src.Spec.Rules[i].BackendRefs {
-			b := src.Spec.Rules[i].BackendRefs[j].BackendObjectReference
-			dst.Spec.Rules[i].BackendRefs[j].BackendObjectReference = gwapiv1.BackendObjectReference{
-				Group:     b.Group,
-				Kind:      b.Kind,
-				Name:      b.Name,
-				Namespace: b.Namespace,
-				// ignore port!
-			}
-		}
+		dst.Spec.Rules[i].BackendRefs = convertBackendRefs(src.Spec.Rules[i].BackendRefs)
 	}
-}
-
-func ConvertV1TCPRouteToStnrV1List(src *gwapiv1.TCPRouteList) *TCPRouteList {
-	if src == nil {
-		return nil
-	}
-	dst := new(TCPRouteList)
-	ConvertV1TCPRouteToStnrV1ListInto(src, dst)
 	return dst
-}
-
-func ConvertV1TCPRouteToStnrV1ListInto(src *gwapiv1.TCPRouteList, dst *TCPRouteList) {
-	dst.TypeMeta = src.TypeMeta
-	src.ListMeta.DeepCopyInto(&dst.ListMeta)
-	dst.Items = make([]TCPRoute, len(src.Items))
-	for i := range src.Items {
-		ConvertV1TCPRouteToStnrV1Into(&src.Items[i], &dst.Items[i])
-	}
 }

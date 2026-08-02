@@ -97,14 +97,14 @@ func TestRenderTCPRoute(t *testing.T) {
 			},
 		},
 		{
-			name:  "gwapiv1 TCPRoute masked by a stunner TCPRoute",
-			cls:   []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:   []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:   []gwapiv1.Gateway{testutils.TestGw},
-			trs:   []stnrgwv1.TCPRoute{testutils.TestTCPRoute},
-			trsV1: []stnrgwv1.TCPRoute{testutils.TestTCPRoute},
-			svcs:  []corev1.Service{testutils.TestSvc},
-			prep:  func(c *renderTestConfig) {},
+			name:     "gwapiv1 TCPRoute masked by a stunner TCPRoute",
+			cls:      []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:      []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:      []gwapiv1.Gateway{testutils.TestGw},
+			trs:      []stnrgwv1.TCPRoute{testutils.TestTCPRoute},
+			trsGwAPI: []stnrgwv1.TCPRoute{testutils.TestTCPRoute},
+			svcs:     []corev1.Service{testutils.TestSvc},
+			prep:     func(c *renderTestConfig) {},
 			tester: func(t *testing.T, r *renderer) {
 				// the masked gwapiv1 route is skipped by allRoutes
 				rs := r.allRoutes()
@@ -113,7 +113,7 @@ func TestRenderTCPRoute(t *testing.T) {
 					store.TCPRoutes.Get(store.GetNamespacedName(rs[0])) == rs[0],
 					"route is the stunner-native one")
 
-				masked := store.TCPRoutesV1.GetAll()[0]
+				masked := store.TCPRoutesGwAPI.GetAll()[0]
 				assert.True(t, isRouteMasked(masked), "masked")
 
 				// masked routes get a Pending status

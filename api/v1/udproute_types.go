@@ -52,7 +52,7 @@ type UDPRoute struct {
 	Spec RouteSpec `json:"spec"`
 
 	// Status defines the current state of UDPRoute.
-	Status gwapiv1a2.UDPRouteStatus `json:"status,omitempty"`
+	Status gwapiv1.UDPRouteStatus `json:"status,omitempty"`
 }
 
 // GetParentRefs returns the parent references of the route.
@@ -79,81 +79,39 @@ type UDPRouteList struct {
 	Items           []UDPRoute `json:"items"`
 }
 
-// conversions
-func ConvertV1A2UDPRouteToV1(src *gwapiv1a2.UDPRoute) *UDPRoute {
+// ConvertV1UDPRouteToStnrV1 converts a graduated Gateway API v1 UDPRoute to the STUNner-native
+// representation, dropping the unsupported upstream backend-reference fields (see
+// convertBackendRefs).
+func ConvertV1UDPRouteToStnrV1(src *gwapiv1.UDPRoute) *UDPRoute {
 	if src == nil {
 		return nil
 	}
 	dst := new(UDPRoute)
-	ConvertV1A2UDPRouteToV1Into(src, dst)
-	return dst
-}
-
-func ConvertV1A2UDPRouteToV1Into(src *gwapiv1a2.UDPRoute, dst *UDPRoute) {
 	src.ObjectMeta.DeepCopyInto(&dst.ObjectMeta)
 	src.Spec.CommonRouteSpec.DeepCopyInto(&dst.Spec.CommonRouteSpec)
 	src.Status.RouteStatus.DeepCopyInto(&dst.Status.RouteStatus)
 
 	dst.Spec.Rules = make([]RouteRule, len(src.Spec.Rules))
 	for i := range src.Spec.Rules {
-		dst.Spec.Rules[i].BackendRefs = make([]BackendRef, len(src.Spec.Rules[i].BackendRefs))
-		for j := range src.Spec.Rules[i].BackendRefs {
-			b := src.Spec.Rules[i].BackendRefs[j].BackendObjectReference
-			dst.Spec.Rules[i].BackendRefs[j].BackendObjectReference = BackendObjectReference{
-				Group:     b.Group,
-				Kind:      b.Kind,
-				Name:      b.Name,
-				Namespace: b.Namespace,
-				// ignore port!
-			}
-		}
+		dst.Spec.Rules[i].BackendRefs = convertBackendRefs(src.Spec.Rules[i].BackendRefs)
 	}
-}
-
-func ConvertV1UDPRouteToV1A2(src *UDPRoute) *gwapiv1a2.UDPRoute {
-	if src == nil {
-		return nil
-	}
-	dst := new(gwapiv1a2.UDPRoute)
-	ConvertV1UDPRouteToV1A2Into(src, dst)
 	return dst
 }
 
-func ConvertV1UDPRouteToV1A2Into(src *UDPRoute, dst *gwapiv1a2.UDPRoute) {
+// ConvertV1A2UDPRouteToStnrV1 converts a deprecated Gateway API v1alpha2 UDPRoute to the
+// STUNner-native representation (see ConvertV1UDPRouteToStnrV1).
+func ConvertV1A2UDPRouteToStnrV1(src *gwapiv1a2.UDPRoute) *UDPRoute {
+	if src == nil {
+		return nil
+	}
+	dst := new(UDPRoute)
 	src.ObjectMeta.DeepCopyInto(&dst.ObjectMeta)
 	src.Spec.CommonRouteSpec.DeepCopyInto(&dst.Spec.CommonRouteSpec)
 	src.Status.RouteStatus.DeepCopyInto(&dst.Status.RouteStatus)
 
-	dst.Spec.Rules = make([]gwapiv1a2.UDPRouteRule, len(src.Spec.Rules))
+	dst.Spec.Rules = make([]RouteRule, len(src.Spec.Rules))
 	for i := range src.Spec.Rules {
-		dst.Spec.Rules[i].BackendRefs = make([]gwapiv1a2.BackendRef, len(src.Spec.Rules[i].BackendRefs))
-		for j := range src.Spec.Rules[i].BackendRefs {
-			b := src.Spec.Rules[i].BackendRefs[j].BackendObjectReference
-			dst.Spec.Rules[i].BackendRefs[j].BackendObjectReference = gwapiv1a2.BackendObjectReference{
-				Group:     b.Group,
-				Kind:      b.Kind,
-				Name:      b.Name,
-				Namespace: b.Namespace,
-				// ignore port!
-			}
-		}
+		dst.Spec.Rules[i].BackendRefs = convertBackendRefs(src.Spec.Rules[i].BackendRefs)
 	}
-}
-
-func ConvertV1A2UDPRouteToV1List(src *gwapiv1a2.UDPRouteList) *UDPRouteList {
-	if src == nil {
-		return nil
-	}
-	dst := new(UDPRouteList)
-	ConvertV1A2UDPRouteToV1ListInto(src, dst)
 	return dst
-}
-
-func ConvertV1A2UDPRouteToV1ListInto(src *gwapiv1a2.UDPRouteList, dst *UDPRouteList) {
-	dst.TypeMeta = src.TypeMeta
-	src.ListMeta.DeepCopyInto(&dst.ListMeta)
-	dst.Items = make([]UDPRoute, len(src.Items))
-	for i := range src.Items {
-		ConvertV1A2UDPRouteToV1Into(&src.Items[i], &dst.Items[i])
-	}
 }

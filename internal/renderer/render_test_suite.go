@@ -41,25 +41,25 @@ func init() {
 }
 
 type renderTestConfig struct {
-	name   string
-	cls    []gwapiv1.GatewayClass
-	cfs    []stnrgwv1.GatewayConfig
-	gws    []gwapiv1.Gateway
-	rs     []stnrgwv1.UDPRoute
-	rsV1A2 []stnrgwv1.UDPRoute // internal format is always ours, not v1a2
-	trs    []stnrgwv1.TCPRoute
-	trsV1  []stnrgwv1.TCPRoute // internal format is always ours, not gwapiv1
-	svcs   []corev1.Service
-	nodes  []corev1.Node
-	eps    []corev1.Endpoints
-	esls   []discoveryv1.EndpointSlice
-	scrts  []corev1.Secret
-	ascrts []corev1.Secret
-	nss    []corev1.Namespace
-	ssvcs  []stnrgwv1.StaticService
-	dps    []stnrgwv1.Dataplane
-	prep   func(c *renderTestConfig)
-	tester func(t *testing.T, r *renderer)
+	name     string
+	cls      []gwapiv1.GatewayClass
+	cfs      []stnrgwv1.GatewayConfig
+	gws      []gwapiv1.Gateway
+	rs       []stnrgwv1.UDPRoute
+	rsGwAPI  []stnrgwv1.UDPRoute // internal format is always ours, not v1a2
+	trs      []stnrgwv1.TCPRoute
+	trsGwAPI []stnrgwv1.TCPRoute // internal format is always ours, not gwapiv1
+	svcs     []corev1.Service
+	nodes    []corev1.Node
+	eps      []corev1.Endpoints
+	esls     []discoveryv1.EndpointSlice
+	scrts    []corev1.Secret
+	ascrts   []corev1.Secret
+	nss      []corev1.Namespace
+	ssvcs    []stnrgwv1.StaticService
+	dps      []stnrgwv1.Dataplane
+	prep     func(c *renderTestConfig)
+	tester   func(t *testing.T, r *renderer)
 }
 
 // start with default config and then reconcile with the given config
@@ -105,9 +105,9 @@ func renderTester(t *testing.T, testConf []renderTestConfig) {
 				store.UDPRoutes.Upsert(&c.rs[i])
 			}
 
-			store.UDPRoutesV1A2.Flush()
-			for i := range c.rsV1A2 {
-				store.UDPRoutesV1A2.Upsert(&c.rsV1A2[i])
+			store.UDPRoutesGwAPI.Flush()
+			for i := range c.rsGwAPI {
+				store.UDPRoutesGwAPI.Upsert(&c.rsGwAPI[i])
 			}
 
 			store.TCPRoutes.Flush()
@@ -115,9 +115,9 @@ func renderTester(t *testing.T, testConf []renderTestConfig) {
 				store.TCPRoutes.Upsert(&c.trs[i])
 			}
 
-			store.TCPRoutesV1.Flush()
-			for i := range c.trsV1 {
-				store.TCPRoutesV1.Upsert(&c.trsV1[i])
+			store.TCPRoutesGwAPI.Flush()
+			for i := range c.trsGwAPI {
+				store.TCPRoutesGwAPI.Upsert(&c.trsGwAPI[i])
 			}
 
 			store.Services.Flush()

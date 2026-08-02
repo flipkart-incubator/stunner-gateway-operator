@@ -113,17 +113,17 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 			},
 		},
 		{
-			name:   "get multi-version routes - no-masking",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rs:     []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			rsV1A2: []stnrgwv1.UDPRoute{},
-			svcs:   []corev1.Service{testutils.TestSvc},
+			name:    "get multi-version routes - no-masking",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rs:      []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			rsGwAPI: []stnrgwv1.UDPRoute{},
+			svcs:    []corev1.Service{testutils.TestSvc},
 			prep: func(c *renderTestConfig) {
 				udpv1a2 := testutils.TestUDPRoute.DeepCopy()
 				udpv1a2.SetName("udproute-ok-v1a2")
-				c.rsV1A2 = []stnrgwv1.UDPRoute{*udpv1a2}
+				c.rsGwAPI = []stnrgwv1.UDPRoute{*udpv1a2}
 			},
 			tester: func(t *testing.T, r *renderer) {
 				gc, err := r.getGatewayClass()
@@ -149,17 +149,17 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 			},
 		},
 		{
-			name:   "get multi-version routes - masking",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rs:     []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			rsV1A2: []stnrgwv1.UDPRoute{},
-			svcs:   []corev1.Service{testutils.TestSvc},
+			name:    "get multi-version routes - masking",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rs:      []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			rsGwAPI: []stnrgwv1.UDPRoute{},
+			svcs:    []corev1.Service{testutils.TestSvc},
 			prep: func(c *renderTestConfig) {
 				udpv1a2 := testutils.TestUDPRoute.DeepCopy()
 				udpv1a2.SetName("udproute-ok")
-				c.rsV1A2 = []stnrgwv1.UDPRoute{*udpv1a2}
+				c.rsGwAPI = []stnrgwv1.UDPRoute{*udpv1a2}
 			},
 			tester: func(t *testing.T, r *renderer) {
 				gc, err := r.getGatewayClass()

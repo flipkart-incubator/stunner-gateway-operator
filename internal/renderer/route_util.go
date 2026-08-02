@@ -26,7 +26,7 @@ func (r *renderer) allRoutes() []store.Route {
 		ret = append(ret, ro)
 	}
 
-	for _, uv1a2 := range store.UDPRoutesV1A2.GetAll() {
+	for _, uv1a2 := range store.UDPRoutesGwAPI.GetAll() {
 		if isRouteMasked(uv1a2) {
 			r.log.Info("Ignoring gwapiv1a2.UDPRoute masking a stunnerv1.UDPRoute:",
 				"name", uv1a2.GetName(), "namespace", uv1a2.GetNamespace())
@@ -39,7 +39,7 @@ func (r *renderer) allRoutes() []store.Route {
 		ret = append(ret, ro)
 	}
 
-	for _, tv1 := range store.TCPRoutesV1.GetAll() {
+	for _, tv1 := range store.TCPRoutesGwAPI.GetAll() {
 		if isRouteMasked(tv1) {
 			r.log.Info("Ignoring gwapiv1.TCPRoute masking a stunnerv1.TCPRoute:",
 				"name", tv1.GetName(), "namespace", tv1.GetNamespace())
@@ -334,10 +334,10 @@ func (r *renderer) getParentGateway(ro store.Route, p *gwapiv1.ParentReference) 
 // invalidateMaskedRoutes invalidates the masked Gateway API routes.
 func (r *renderer) invalidateMaskedRoutes(c *RenderContext) {
 	maskable := []store.Route{}
-	for _, ro := range store.UDPRoutesV1A2.GetAll() {
+	for _, ro := range store.UDPRoutesGwAPI.GetAll() {
 		maskable = append(maskable, ro)
 	}
-	for _, ro := range store.TCPRoutesV1.GetAll() {
+	for _, ro := range store.TCPRoutesGwAPI.GetAll() {
 		maskable = append(maskable, ro)
 	}
 
@@ -365,16 +365,22 @@ func (r *renderer) invalidateMaskedRoutes(c *RenderContext) {
 func queueRouteStatusUpdate(c *RenderContext, ro store.Route) {
 	switch ro := ro.(type) {
 	case *stnrgwv1.UDPRoute:
-		if isRouteV1A2(ro) {
-			c.update.UpsertQueue.UDPRoutesV1A2.Upsert(statusTargetV1A2UDPRoute(ro))
-		} else {
+		switch {
+		case !isRouteGwAPIUDP(ro):
 			c.update.UpsertQueue.UDPRoutes.Upsert(ro.DeepCopy())
+		case config.GwAPIUDPRouteVersion == config.GwAPIVersionV1A2:
+			c.update.UpsertQueue.UDPRoutesGwAPI.Upsert(statusTargetV1A2UDPRoute(ro))
+		default:
+			c.update.UpsertQueue.UDPRoutesGwAPI.Upsert(statusTargetV1UDPRoute(ro))
 		}
 	case *stnrgwv1.TCPRoute:
-		if isRouteTCPV1(ro) {
-			c.update.UpsertQueue.TCPRoutesV1.Upsert(statusTargetV1TCPRoute(ro))
-		} else {
+		switch {
+		case !isRouteGwAPITCP(ro):
 			c.update.UpsertQueue.TCPRoutes.Upsert(ro.DeepCopy())
+		case config.GwAPITCPRouteVersion == config.GwAPIVersionV1A2:
+			c.update.UpsertQueue.TCPRoutesGwAPI.Upsert(statusTargetV1A2TCPRoute(ro))
+		default:
+			c.update.UpsertQueue.TCPRoutesGwAPI.Upsert(statusTargetV1TCPRoute(ro))
 		}
 	}
 }
@@ -382,14 +388,34 @@ func queueRouteStatusUpdate(c *RenderContext, ro store.Route) {
 // statusTargetV1A2UDPRoute builds a v1alpha2 bearer object for status updates.
 //
 // Rendering uses STUNner v1 routes as the canonical in-memory representation,
-// including routes converted from gwapi v1alpha2. The updater, however, must
+// including routes converted from the official Gateway API versions. The updater, however, must
 // call Status().Update on the concrete API object type that exists in the
 // cluster. This adapter converts canonical route status to that bearer type.
 func statusTargetV1A2UDPRoute(ro *stnrgwv1.UDPRoute) *gwapiv1a2.UDPRoute {
 	ret := &gwapiv1a2.UDPRoute{}
 	ret.SetName(ro.GetName())
 	ret.SetNamespace(ro.GetNamespace())
-	ro.Status.DeepCopyInto(&ret.Status)
+	ro.Status.RouteStatus.DeepCopyInto(&ret.Status.RouteStatus)
+	return ret
+}
+
+// statusTargetV1UDPRoute builds a graduated Gateway API v1 bearer object for UDPRoute status
+// updates (see statusTargetV1A2UDPRoute).
+func statusTargetV1UDPRoute(ro *stnrgwv1.UDPRoute) *gwapiv1.UDPRoute {
+	ret := &gwapiv1.UDPRoute{}
+	ret.SetName(ro.GetName())
+	ret.SetNamespace(ro.GetNamespace())
+	ro.Status.RouteStatus.DeepCopyInto(&ret.Status.RouteStatus)
+	return ret
+}
+
+// statusTargetV1A2TCPRoute builds a deprecated Gateway API v1alpha2 bearer object for TCPRoute
+// status updates (see statusTargetV1A2UDPRoute).
+func statusTargetV1A2TCPRoute(ro *stnrgwv1.TCPRoute) *gwapiv1a2.TCPRoute {
+	ret := &gwapiv1a2.TCPRoute{}
+	ret.SetName(ro.GetName())
+	ret.SetNamespace(ro.GetNamespace())
+	ro.Status.RouteStatus.DeepCopyInto(&ret.Status.RouteStatus)
 	return ret
 }
 
@@ -399,7 +425,7 @@ func statusTargetV1TCPRoute(ro *stnrgwv1.TCPRoute) *gwapiv1.TCPRoute {
 	ret := &gwapiv1.TCPRoute{}
 	ret.SetName(ro.GetName())
 	ret.SetNamespace(ro.GetNamespace())
-	ro.Status.DeepCopyInto(&ret.Status)
+	ro.Status.RouteStatus.DeepCopyInto(&ret.Status.RouteStatus)
 	return ret
 }
 
@@ -515,22 +541,22 @@ func isRouteV1(ro client.Object) bool {
 }
 
 // check by pointer: namespacedname is not unique across stunnerv1 and v1a2 routes
-func isRouteV1A2(ro client.Object) bool {
-	return store.UDPRoutesV1A2.Get(store.GetNamespacedName(ro)) == ro
+func isRouteGwAPIUDP(ro client.Object) bool {
+	return store.UDPRoutesGwAPI.Get(store.GetNamespacedName(ro)) == ro
 }
 
 // check by pointer: namespacedname is not unique across stunnerv1 and gwapiv1 routes
-func isRouteTCPV1(ro client.Object) bool {
-	return store.TCPRoutesV1.Get(store.GetNamespacedName(ro)) == ro
+func isRouteGwAPITCP(ro client.Object) bool {
+	return store.TCPRoutesGwAPI.Get(store.GetNamespacedName(ro)) == ro
 }
 
 // isRouteMasked returns true for a Gateway API route that is overridden by a STUNner-native route
 // of the same kind, namespace and name.
 func isRouteMasked(ro client.Object) bool {
 	switch {
-	case isRouteV1A2(ro):
+	case isRouteGwAPIUDP(ro):
 		return store.UDPRoutes.Get(store.GetNamespacedName(ro)) != nil
-	case isRouteTCPV1(ro):
+	case isRouteGwAPITCP(ro):
 		return store.TCPRoutes.Get(store.GetNamespacedName(ro)) != nil
 	default:
 		return false

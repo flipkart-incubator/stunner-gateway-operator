@@ -85,3 +85,23 @@ type BackendObjectReference struct {
 	// +optional
 	EndPort *gwapiv1.PortNumber `json:"endPort,omitempty"`
 }
+
+// convertBackendRefs converts the backend references of an upstream Gateway API route rule to the
+// native representation. Every upstream route rule carries its refs as []gwapiv1.BackendRef (the
+// v1alpha2 rule types are defined over their graduated v1 counterparts), so this is the single
+// place where the unsupported upstream fields are dropped: the backend port (the native optional
+// port/endPort pair is a peer port-range filter, which has no official counterpart) and the
+// weight.
+func convertBackendRefs(refs []gwapiv1.BackendRef) []BackendRef {
+	ret := make([]BackendRef, len(refs))
+	for i := range refs {
+		b := refs[i].BackendObjectReference
+		ret[i].BackendObjectReference = BackendObjectReference{
+			Group:     b.Group,
+			Kind:      b.Kind,
+			Name:      b.Name,
+			Namespace: b.Namespace,
+		}
+	}
+	return ret
+}

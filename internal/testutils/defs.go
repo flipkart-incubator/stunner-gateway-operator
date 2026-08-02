@@ -360,6 +360,30 @@ var TestDataplane = stnrgwv1.Dataplane{
 	},
 }
 
+// TestTCPRouteV1 is an official Gateway API v1 TCPRoute mirroring TestTCPRoute.
+var TestTCPRouteV1 = gwapiv1.TCPRoute{
+	ObjectMeta: metav1.ObjectMeta{
+		Name:      "tcproute-ok",
+		Namespace: "testnamespace",
+	},
+	Spec: gwapiv1.TCPRouteSpec{
+		CommonRouteSpec: gwapiv1.CommonRouteSpec{
+			ParentRefs: []gwapiv1.ParentReference{{
+				Name:        "gateway-1",
+				SectionName: &TestSectionNameTCP,
+			}},
+		},
+		Rules: []gwapiv1.TCPRouteRule{{
+			BackendRefs: []gwapiv1.BackendRef{{
+				BackendObjectReference: gwapiv1.BackendObjectReference{
+					Name: gwapiv1.ObjectName("testservice-ok"),
+					Port: &TestPort,
+				},
+			}},
+		}},
+	},
+}
+
 // For backward compatibility
 var TestUDPRouteV1A2 = gwapiv1a2.UDPRoute{
 	ObjectMeta: metav1.ObjectMeta{

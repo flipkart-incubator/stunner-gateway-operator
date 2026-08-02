@@ -84,6 +84,8 @@ var (
 	testGw            *gwapiv1.Gateway
 	testUDPRouteV1A2  *gwapiv1a2.UDPRoute
 	testUDPRoute      *stnrgwv1.UDPRoute
+	testTCPRoute      *stnrgwv1.TCPRoute
+	testTCPRouteV1    *gwapiv1.TCPRoute
 	testSvc           *corev1.Service
 	testEndpoint      *corev1.Endpoints
 	testEndpointSlice *discoveryv1.EndpointSlice
@@ -129,7 +131,7 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "config", "crd", "bases"),
-			filepath.Join("..", "config", "gateway-api-v1.0.0", "crd"),
+			filepath.Join("..", "config", "gateway-api-v1.6.0", "crd"),
 		},
 		ErrorIfCRDPathMissing:    true,
 		AttachControlPlaneOutput: true,
@@ -265,6 +267,8 @@ func InitResources() {
 	testStaticSvc = testutils.TestStaticSvc.DeepCopy()
 	testDataplane = testutils.TestDataplane.DeepCopy()
 	testUDPRouteV1A2 = testutils.TestUDPRouteV1A2.DeepCopy()
+	testTCPRoute = testutils.TestTCPRoute.DeepCopy()
+	testTCPRouteV1 = testutils.TestTCPRouteV1.DeepCopy()
 	testDaemonSet = testutils.TestDaemonSet.DeepCopy()
 }
 

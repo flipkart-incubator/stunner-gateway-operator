@@ -63,4 +63,25 @@ var (
 	// Override via the STUNNER_GATEWAY_OPERATOR_LABEL_FILTER env-var (comma-separated). If
 	// the env-var is set, it replaces the default rather than extending it.
 	LabelFilter = append([]string(nil), opdefault.DefaultLabelFilter...)
+
+	// GwAPIUDPRouteVersion is the API version at which the cluster serves the official
+	// Gateway API UDPRoute resource: the graduated "v1" version is preferred over the
+	// deprecated "v1alpha2". The route controller detects the served version at startup;
+	// an empty value means the CRD is not installed. Route statuses are written back at
+	// this version.
+	GwAPIUDPRouteVersion = GwAPIVersionUnavailable
+
+	// GwAPITCPRouteVersion is the API version at which the cluster serves the official
+	// Gateway API TCPRoute resource (see GwAPIUDPRouteVersion).
+	GwAPITCPRouteVersion = GwAPIVersionUnavailable
+)
+
+// Gateway API route resource version markers.
+const (
+	// GwAPIVersionUnavailable means the resource is not served by the cluster.
+	GwAPIVersionUnavailable = ""
+	// GwAPIVersionV1 is the graduated v1 version.
+	GwAPIVersionV1 = "v1"
+	// GwAPIVersionV1A2 is the deprecated v1alpha2 version.
+	GwAPIVersionV1A2 = "v1alpha2"
 )

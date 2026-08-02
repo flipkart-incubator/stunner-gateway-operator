@@ -488,14 +488,14 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 			},
 		},
 		{
-			name:   "EDS with UDPRoteV1A2 and relay-to-cluster-IP - E2E test - legacy endpoints controller",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rsV1A2: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			svcs:   []corev1.Service{testutils.TestSvc},
-			eps:    []corev1.Endpoints{testutils.TestEndpoint},
-			dps:    []stnrgwv1.Dataplane{testutils.TestDataplane},
+			name:    "EDS with UDPRoteV1A2 and relay-to-cluster-IP - E2E test - legacy endpoints controller",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rsGwAPI: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			svcs:    []corev1.Service{testutils.TestSvc},
+			eps:     []corev1.Endpoints{testutils.TestEndpoint},
+			dps:     []stnrgwv1.Dataplane{testutils.TestDataplane},
 			prep: func(c *renderTestConfig) {
 				s := testutils.TestSvc.DeepCopy()
 				s.Spec.ClusterIP = "4.3.2.1"
@@ -589,14 +589,14 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 			},
 		},
 		{
-			name:   "EDS with UDPRoteV1A2 and relay-to-cluster-IP - E2E test",
-			cls:    []gwapiv1.GatewayClass{testutils.TestGwClass},
-			cfs:    []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
-			gws:    []gwapiv1.Gateway{testutils.TestGw},
-			rsV1A2: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
-			svcs:   []corev1.Service{testutils.TestSvc},
-			esls:   []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
-			dps:    []stnrgwv1.Dataplane{testutils.TestDataplane},
+			name:    "EDS with UDPRoteV1A2 and relay-to-cluster-IP - E2E test",
+			cls:     []gwapiv1.GatewayClass{testutils.TestGwClass},
+			cfs:     []stnrgwv1.GatewayConfig{testutils.TestGwConfig},
+			gws:     []gwapiv1.Gateway{testutils.TestGw},
+			rsGwAPI: []stnrgwv1.UDPRoute{testutils.TestUDPRoute},
+			svcs:    []corev1.Service{testutils.TestSvc},
+			esls:    []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
+			dps:     []stnrgwv1.Dataplane{testutils.TestDataplane},
 			prep: func(c *renderTestConfig) {
 				s := testutils.TestSvc.DeepCopy()
 				s.Spec.ClusterIP = "4.3.2.1"

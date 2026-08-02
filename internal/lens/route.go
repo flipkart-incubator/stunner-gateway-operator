@@ -28,11 +28,15 @@ func routeStatus(o client.Object) *gwapiv1.RouteStatus {
 	switch ro := o.(type) {
 	case *stnrgwv1.UDPRoute:
 		return &ro.Status.RouteStatus
+	case *gwapiv1.UDPRoute:
+		return &ro.Status.RouteStatus
 	case *gwapiv1a2.UDPRoute:
 		return &ro.Status.RouteStatus
 	case *stnrgwv1.TCPRoute:
 		return &ro.Status.RouteStatus
 	case *gwapiv1.TCPRoute:
+		return &ro.Status.RouteStatus
+	case *gwapiv1a2.TCPRoute:
 		return &ro.Status.RouteStatus
 	}
 	return nil

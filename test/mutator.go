@@ -221,6 +221,44 @@ func createOrUpdateUDPRoute(ctx context.Context, k8sClient client.Client, templa
 	Expect(err).Should(Succeed())
 }
 
+type TCPRouteMutator func(current *stnrgwv1.TCPRoute)
+
+func createOrUpdateTCPRoute(ctx context.Context, k8sClient client.Client, template *stnrgwv1.TCPRoute, f TCPRouteMutator) {
+	current := &stnrgwv1.TCPRoute{ObjectMeta: metav1.ObjectMeta{
+		Name:      template.GetName(),
+		Namespace: template.GetNamespace(),
+	}}
+
+	_, err := createOrUpdate(ctx, k8sClient, current, func() error {
+		current.SetLabels(template.GetLabels())
+		template.Spec.DeepCopyInto(&current.Spec)
+		if f != nil {
+			f(current)
+		}
+		return nil
+	})
+	Expect(err).Should(Succeed())
+}
+
+type TCPRouteV1Mutator func(current *gwapiv1.TCPRoute)
+
+func createOrUpdateTCPRouteV1(ctx context.Context, k8sClient client.Client, template *gwapiv1.TCPRoute, f TCPRouteV1Mutator) {
+	current := &gwapiv1.TCPRoute{ObjectMeta: metav1.ObjectMeta{
+		Name:      template.GetName(),
+		Namespace: template.GetNamespace(),
+	}}
+
+	_, err := createOrUpdate(ctx, k8sClient, current, func() error {
+		current.SetLabels(template.GetLabels())
+		template.Spec.DeepCopyInto(&current.Spec)
+		if f != nil {
+			f(current)
+		}
+		return nil
+	})
+	Expect(err).Should(Succeed())
+}
+
 type NodeMutator func(current *corev1.Node)
 
 func statusUpdateNode(ctx context.Context, k8sClient client.Client, name string, f NodeMutator) {
