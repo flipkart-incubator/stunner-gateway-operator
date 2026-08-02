@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
 	"net"
 	"testing"
 	"time"
@@ -506,7 +505,11 @@ func TestConfigPatcher(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		c, err := cdsc1.Load()
-		assert.NoError(t, err, "loading default client config")
+		if err != nil {
+			// transient load failure: let Eventually retry instead of tripping on a
+			// nil config
+			return false
+		}
 		return len(c.Listeners) == 1 && c.Listeners[0].Addr == opdefault.DefaultSTUNnerAddressEnvVarName
 	}, time.Second, 10*time.Millisecond)
 
@@ -520,7 +523,11 @@ func TestConfigPatcher(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		c, err := cdsc1.Load()
-		assert.NoError(t, err, "loading default client config")
+		if err != nil {
+			// transient load failure: let Eventually retry instead of tripping on a
+			// nil config
+			return false
+		}
 		return len(c.Listeners) == 1 && c.Listeners[0].Addr == "1.2.3.4" // testnode 1 external ip
 	}, time.Second, 10*time.Millisecond)
 
@@ -539,7 +546,11 @@ func TestConfigPatcher(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		c, err := cdsc1.Load()
-		assert.NoError(t, err, "loading default client config")
+		if err != nil {
+			// transient load failure: let Eventually retry instead of tripping on a
+			// nil config
+			return false
+		}
 		return len(c.Listeners) == 1 && c.Listeners[0].Addr == opdefault.DefaultSTUNnerAddressEnvVarName
 	}, time.Second, 10*time.Millisecond)
 
@@ -553,7 +564,11 @@ func TestConfigPatcher(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		c, err := cdsc1.Load()
-		assert.NoError(t, err, "loading default client config")
+		if err != nil {
+			// transient load failure: let Eventually retry instead of tripping on a
+			// nil config
+			return false
+		}
 		return len(c.Listeners) == 1 && net.ParseIP(c.Listeners[0].Addr) != nil // testnode2 addr should parse as ip
 	}, time.Second, 10*time.Millisecond)
 
@@ -572,7 +587,11 @@ func TestConfigPatcher(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		c, err := cdsc1.Load()
-		assert.NoError(t, err, "loading default client config")
+		if err != nil {
+			// transient load failure: let Eventually retry instead of tripping on a
+			// nil config
+			return false
+		}
 		return len(c.Listeners) == 1 && c.Listeners[0].Addr == opdefault.DefaultSTUNnerAddressEnvVarName
 	}, time.Second, 10*time.Millisecond)
 
@@ -586,7 +605,11 @@ func TestConfigPatcher(t *testing.T) {
 
 	assert.Eventually(t, func() bool {
 		c, err := cdsc1.Load()
-		assert.NoError(t, err, "loading default client config")
+		if err != nil {
+			// transient load failure: let Eventually retry instead of tripping on a
+			// nil config
+			return false
+		}
 		return len(c.Listeners) == 1 && c.Listeners[0].Addr == opdefault.DefaultSTUNnerAddressEnvVarName
 	}, time.Second, 10*time.Millisecond)
 
@@ -623,10 +646,15 @@ func watchConfig(ch chan *stnrv1.StunnerConfig, d time.Duration) *stnrv1.Stunner
 	}
 }
 
-// run on random port
+// getRandCDSAddr returns a loopback address with a kernel-allocated free port for a test CDS
+// server: a blind random port may collide with the ephemeral sockets of a previous test phase.
 func getRandCDSAddr() string {
-	rndPort := rand.Intn(10000) + 50000
-	return fmt.Sprintf(":%d", rndPort)
+	probe, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		panic(err)
+	}
+	defer probe.Close()
+	return fmt.Sprintf("127.0.0.1:%d", probe.Addr().(*net.TCPAddr).Port)
 }
 
 func zeroConfig(namespace, name, realm string) *stnrv1.StunnerConfig {
