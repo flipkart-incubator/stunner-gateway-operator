@@ -34,7 +34,7 @@ func (l *UDPRouteLens) EqualStatus(current client.Object) bool {
 		return false
 	}
 
-	return UDPRouteStatusEqual(ro.Status, l.Status)
+	return RouteStatusEqual(ro.Status.RouteStatus, l.Status.RouteStatus)
 }
 
 func (l *UDPRouteLens) ApplyToStatus(target client.Object) error {
@@ -75,7 +75,7 @@ func (l *UDPRouteV1A2Lens) EqualStatus(current client.Object) bool {
 		return false
 	}
 
-	return UDPRouteStatusEqual(ro.Status, l.Status)
+	return RouteStatusEqual(ro.Status.RouteStatus, l.Status.RouteStatus)
 }
 
 func (l *UDPRouteV1A2Lens) ApplyToStatus(target client.Object) error {
@@ -94,7 +94,9 @@ func (l *UDPRouteV1A2Lens) DeepCopy() *UDPRouteV1A2Lens {
 
 func (l *UDPRouteV1A2Lens) DeepCopyObject() runtime.Object { return l.DeepCopy() }
 
-func UDPRouteStatusEqual(current, desired gwapiv1a2.UDPRouteStatus) bool {
+// RouteStatusEqual compares the status of two routes of any kind, ignoring differences in
+// condition timestamps and the representation of default-valued parent reference fields.
+func RouteStatusEqual(current, desired gwapiv1.RouteStatus) bool {
 	normalized := desired.DeepCopy()
 	for i := range normalized.Parents {
 		dp := &normalized.Parents[i]

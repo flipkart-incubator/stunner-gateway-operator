@@ -14,11 +14,21 @@ import (
 	stnrgwv1 "github.com/l7mp/stunner-gateway-operator/api/v1"
 )
 
-func (r *renderer) renderCluster(ro *stnrgwv1.UDPRoute) (*stnrconfv1.ClusterConfig, error) {
-	// r.log.V(4).Info("renderCluster", "route", store.GetObjectKey(ro))
+// renderCluster renders a stunnerd cluster config for a route. The route kind determines the
+// cluster protocol and the rendering strategy.
+func (r *renderer) renderCluster(ro store.Route) (*stnrconfv1.ClusterConfig, error) {
+	switch ro := ro.(type) {
+	case *stnrgwv1.UDPRoute:
+		return r.renderServiceCluster(ro, ro.Spec.Rules, stnrconfv1.ClusterProtocolUDP)
+	default:
+		return nil, NewCriticalError(InternalError)
+	}
+}
 
+// renderServiceCluster renders a cluster config from a set of route rules whose backend
+// references resolve to Kubernetes Services or StaticServices.
+func (r *renderer) renderServiceCluster(ro store.Route, rs []stnrgwv1.RouteRule, proto stnrconfv1.ClusterProtocol) (*stnrconfv1.ClusterConfig, error) {
 	// track down the backendref
-	rs := ro.Spec.Rules
 	if len(rs) == 0 {
 		return nil, NewCriticalError(NoRuleFound)
 	}
@@ -160,6 +170,7 @@ func (r *renderer) renderCluster(ro *stnrgwv1.UDPRoute) (*stnrconfv1.ClusterConf
 	cluster := stnrconfv1.ClusterConfig{
 		Name:      store.GetObjectKey(ro),
 		Type:      ctype.String(),
+		Protocol:  proto.String(),
 		Endpoints: eps,
 	}
 

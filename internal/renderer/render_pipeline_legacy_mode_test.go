@@ -1272,9 +1272,9 @@ func TestRenderPipelineLegacyMode(t *testing.T) {
 				assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-ok"),
 					store.GetObjectKey(ro), "route name found")
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				p := ro.Spec.ParentRefs[0]
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				p := ro.GetParentRefs()[0]
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1378,7 +1378,7 @@ func TestRenderPipelineLegacyMode(t *testing.T) {
 		// 		assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "dummy-route"),
 		// 			store.GetObjectKey(ro), "route name found")
 
-		// 		assert.Len(t, ro.Status.Parents, 0, "parent status len")
+		// 		assert.Len(t, ro.GetRouteStatus().Parents, 0, "parent status len")
 
 		// 		config.DataplaneMode = config.NewDataplaneMode(opdefault.DefaultDataplaneMode)
 		// 	},

@@ -13,7 +13,6 @@ import (
 
 	"github.com/l7mp/stunner-gateway-operator/internal/store"
 
-	stnrgwv1 "github.com/l7mp/stunner-gateway-operator/api/v1"
 	opdefault "github.com/l7mp/stunner-gateway-operator/pkg/config"
 )
 
@@ -41,7 +40,7 @@ func (r *listenerRenderer) render(c *RenderContext, args ...any) (stnrconfv1.Con
 		return nil, fmt.Errorf("Internal error: Invalid call to listenerRender with args %v", args)
 	}
 	l := args[0].(*gwapiv1.Listener)
-	rs := args[1].([]*stnrgwv1.UDPRoute)
+	rs := args[1].([]store.Route)
 	ap := args[2].(gwAddrPort)
 	targetPorts := args[3].(map[string]int)
 

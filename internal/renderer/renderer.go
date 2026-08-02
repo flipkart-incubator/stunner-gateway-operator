@@ -11,11 +11,11 @@ import (
 
 	stnrconfv1 "github.com/l7mp/stunner/pkg/apis/v1"
 
-	stnrgwv1 "github.com/l7mp/stunner-gateway-operator/api/v1"
 	"github.com/l7mp/stunner-gateway-operator/internal/config"
 	"github.com/l7mp/stunner-gateway-operator/internal/event"
 	licensemgr "github.com/l7mp/stunner-gateway-operator/internal/licensemanager"
 	"github.com/l7mp/stunner-gateway-operator/internal/metrics"
+	"github.com/l7mp/stunner-gateway-operator/internal/store"
 )
 
 var NewRenderer = NewDefaultRenderer
@@ -164,7 +164,7 @@ func (r *renderer) renderAuth(c *RenderContext) (*stnrconfv1.AuthConfig, error) 
 }
 
 // renderListener is a wrapper for listenerRenderer.render()
-func (r *renderer) renderListener(c *RenderContext, l *gwapiv1.Listener, rs []*stnrgwv1.UDPRoute, ap gwAddrPort, targetPorts map[string]int) (*stnrconfv1.ListenerConfig, error) {
+func (r *renderer) renderListener(c *RenderContext, l *gwapiv1.Listener, rs []store.Route, ap gwAddrPort, targetPorts map[string]int) (*stnrconfv1.ListenerConfig, error) {
 	conf, err := r.listenerRenderer.render(c, l, rs, ap, targetPorts)
 	if err != nil {
 		return nil, err

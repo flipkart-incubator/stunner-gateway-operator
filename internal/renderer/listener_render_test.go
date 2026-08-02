@@ -47,7 +47,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 
 				addr := gwAddrPort{
@@ -94,7 +94,7 @@ func TestRenderListenerRender(t *testing.T) {
 					addr: "1.2.3.4",
 					port: 1234,
 				}
-				_, err = r.renderListener(c, &l, []*stnrgwv1.UDPRoute{}, addr, nil)
+				_, err = r.renderListener(c, &l, []store.Route{}, addr, nil)
 				assert.Error(t, err, "render fails")
 			},
 		},
@@ -127,7 +127,7 @@ func TestRenderListenerRender(t *testing.T) {
 					port: 4321,
 				}
 
-				lc, err := r.renderListener(c, &l, []*stnrgwv1.UDPRoute{}, addr, nil)
+				lc, err := r.renderListener(c, &l, []store.Route{}, addr, nil)
 				assert.NoError(t, err, "renderListener")
 				assert.Equal(t, "testnamespace/gateway-1/gateway-1-listener-tcp", lc.Name, "name")
 				assert.Equal(t, "TURN-TCP", lc.Protocol, "proto")
@@ -166,7 +166,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 
 				addr := gwAddrPort{
@@ -214,7 +214,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 
 				addr := gwAddrPort{
@@ -278,7 +278,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -361,7 +361,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -416,7 +416,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -473,7 +473,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -527,7 +527,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -588,7 +588,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -649,7 +649,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -710,7 +710,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -768,7 +768,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -829,7 +829,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,
@@ -895,7 +895,7 @@ func TestRenderListenerRender(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := []*stnrgwv1.UDPRoute{}
+				rs := []store.Route{}
 				addr := gwAddrPort{
 					addr: "1.2.3.4",
 					port: 1234,

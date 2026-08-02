@@ -34,10 +34,10 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 			tester: func(t *testing.T, r *renderer) {
 				config.EndpointSliceAvailable = false
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -64,10 +64,10 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 			tester: func(t *testing.T, r *renderer) {
 				config.EndpointSliceAvailable = true
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -93,10 +93,10 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 			tester: func(t *testing.T, r *renderer) {
 				config.EndpointSliceAvailable = false
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -122,10 +122,10 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 			tester: func(t *testing.T, r *renderer) {
 				config.EndpointSliceAvailable = true
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -163,7 +163,7 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 			tester: func(t *testing.T, r *renderer) {
 				config.EndpointSliceAvailable = true
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				rc, err := r.renderCluster(rs[0])
@@ -194,10 +194,10 @@ func TestRenderClusterRender(t *testing.T) {
 			},
 			tester: func(t *testing.T, r *renderer) {
 				config.EndpointSliceAvailable = true
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.False(t, exists, "route exists")
@@ -213,11 +213,11 @@ func TestRenderClusterRender(t *testing.T) {
 			svcs: []corev1.Service{testutils.TestSvc},
 			prep: func(c *renderTestConfig) {},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -256,10 +256,10 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -297,10 +297,10 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -341,10 +341,10 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -383,11 +383,11 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -431,7 +431,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				// switch EDS off
@@ -473,11 +473,11 @@ func TestRenderClusterRender(t *testing.T) {
 				c.svcs = []corev1.Service{*s}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -514,11 +514,11 @@ func TestRenderClusterRender(t *testing.T) {
 			esls: []discoveryv1.EndpointSlice{testutils.TestEndpointSlice},
 			prep: func(c *renderTestConfig) {},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -562,11 +562,11 @@ func TestRenderClusterRender(t *testing.T) {
 				c.svcs = []corev1.Service{*s}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -608,11 +608,11 @@ func TestRenderClusterRender(t *testing.T) {
 				c.svcs = []corev1.Service{*s}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -654,11 +654,11 @@ func TestRenderClusterRender(t *testing.T) {
 				c.svcs = []corev1.Service{*s}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -702,10 +702,10 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -744,10 +744,10 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -789,10 +789,10 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -843,11 +843,11 @@ func TestRenderClusterRender(t *testing.T) {
 				c.esls = []discoveryv1.EndpointSlice{*e}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				ro := rs[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, "gatewayclass-ok")
 				assert.True(t, exists, "route exists")
@@ -932,7 +932,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.esls = []discoveryv1.EndpointSlice{*e1, *e2}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				// switch EDS off
@@ -1019,7 +1019,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.esls = []discoveryv1.EndpointSlice{*e1, *e2}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				// switch EDS off
@@ -1106,7 +1106,7 @@ func TestRenderClusterRender(t *testing.T) {
 
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				// switch EDS off
@@ -1157,7 +1157,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				rc, err := r.renderCluster(rs[0])
@@ -1192,7 +1192,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				_, err := r.renderCluster(rs[0])
@@ -1229,7 +1229,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.rs = []stnrgwv1.UDPRoute{*udp}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				// switch EDS off: would render a DNS cluster plus a STATIC for the
@@ -1285,7 +1285,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.ssvcs = []stnrgwv1.StaticService{testutils.TestStaticSvc, *ssvc2}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				config.EnableEndpointDiscovery = true
@@ -1352,7 +1352,7 @@ func TestRenderClusterRender(t *testing.T) {
 				c.ssvcs = []stnrgwv1.StaticService{testutils.TestStaticSvc, *ssvc2}
 			},
 			tester: func(t *testing.T, r *renderer) {
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route len")
 
 				config.EnableEndpointDiscovery = true

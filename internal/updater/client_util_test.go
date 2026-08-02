@@ -201,7 +201,7 @@ func TestGatewayStatusAddressDiff(t *testing.T) {
 	assert.False(t, lens.GatewayStatusEqual(current, desired), "expected address change to be detected")
 }
 
-func TestUDPRouteStatusEqual(t *testing.T) {
+func TestRouteStatusEqual(t *testing.T) {
 	now := metav1.NewTime(time.Now())
 	later := metav1.NewTime(time.Now().Add(10 * time.Second))
 
@@ -224,15 +224,15 @@ func TestUDPRouteStatusEqual(t *testing.T) {
 	desired := *current.DeepCopy()
 	desired.Parents[0].Conditions[0].LastTransitionTime = later
 
-	assert.True(t, lens.UDPRouteStatusEqual(current, desired),
+	assert.True(t, lens.RouteStatusEqual(current.RouteStatus, desired.RouteStatus),
 		"expected equal UDPRoute status to ignore timestamp differences")
 
 	desired.Parents[0].Conditions[0].Message = "changed"
-	assert.False(t, lens.UDPRouteStatusEqual(current, desired),
+	assert.False(t, lens.RouteStatusEqual(current.RouteStatus, desired.RouteStatus),
 		"expected parent condition semantic difference to be detected")
 }
 
-func TestUDPRouteStatusParentDiff(t *testing.T) {
+func TestRouteStatusParentDiff(t *testing.T) {
 	group := gwapiv1.Group(gwapiv1.GroupName)
 	kind := gwapiv1.Kind("Gateway")
 	name := gwapiv1.ObjectName("gw")
@@ -245,7 +245,7 @@ func TestUDPRouteStatusParentDiff(t *testing.T) {
 	desired := *current.DeepCopy()
 	desired.Parents[0].ParentRef.Name = gwapiv1.ObjectName("gw-other")
 
-	assert.False(t, lens.UDPRouteStatusEqual(current, desired),
+	assert.False(t, lens.RouteStatusEqual(current.RouteStatus, desired.RouteStatus),
 		"expected parent ref change to be detected")
 }
 

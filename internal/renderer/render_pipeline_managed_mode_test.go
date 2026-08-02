@@ -244,13 +244,13 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 					gw.Status.Conditions[1].Reason, "reason")
 
 				// route status
-				ros := r.allUDPRoutes()
+				ros := r.allRoutes()
 				assert.Len(t, ros, 1, "routes len")
 				ro := ros[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1329,13 +1329,13 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 					d.Reason, "reason")
 
 				// route status
-				ros := r.allUDPRoutes()
+				ros := r.allRoutes()
 				assert.Len(t, ros, 1, "routes len")
 				ro := ros[0]
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1703,13 +1703,13 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 					d.Reason, "reason")
 
 				// route status
-				ros := r.allUDPRoutes()
+				ros := r.allRoutes()
 				assert.Len(t, ros, 1, "routes len")
 				ro := ros[0]
 
-				assert.Len(t, ro.Status.Parents, 2, "parent status len")
-				parentStatus := ro.Status.Parents[0]
-				p := ro.Spec.ParentRefs[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 2, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
+				p := ro.GetParentRefs()[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1738,8 +1738,8 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 				assert.Equal(t, int64(0), d.ObservedGeneration, "gen")
 				assert.Equal(t, "ResolvedRefs", d.Reason, "reason")
 
-				parentStatus = ro.Status.Parents[1]
-				p = ro.Spec.ParentRefs[1]
+				parentStatus = ro.GetRouteStatus().Parents[1]
+				p = ro.GetParentRefs()[1]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1866,9 +1866,9 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 					gw.Status.Conditions[1].Reason, "reason")
 
 				// route status
-				assert.Len(t, ro.Status.Parents, 2, "parent status len")
-				parentStatus = ro.Status.Parents[0]
-				p = ro.Spec.ParentRefs[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 2, "parent status len")
+				parentStatus = ro.GetRouteStatus().Parents[0]
+				p = ro.GetParentRefs()[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1897,8 +1897,8 @@ func TestRenderPipelineManagedMode(t *testing.T) {
 				assert.Equal(t, int64(0), d.ObservedGeneration, "gen")
 				assert.Equal(t, "ResolvedRefs", d.Reason, "reason")
 
-				parentStatus = ro.Status.Parents[1]
-				p = ro.Spec.ParentRefs[1]
+				parentStatus = ro.GetRouteStatus().Parents[1]
+				p = ro.GetParentRefs()[1]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")

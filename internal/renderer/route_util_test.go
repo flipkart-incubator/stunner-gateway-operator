@@ -43,7 +43,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 				assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-ok"),
@@ -102,7 +102,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 2, "route found")
 				keys := []string{store.GetObjectKey(rs[0]), store.GetObjectKey(rs[1])}
 				assert.Contains(t, keys, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-ok"),
@@ -139,7 +139,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 2, "route found")
 				keys := []string{store.GetObjectKey(rs[0]), store.GetObjectKey(rs[1])}
 				assert.Contains(t, keys, fmt.Sprintf("%s/%s", testutils.TestNsName,
@@ -175,7 +175,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-ok"),
 					store.GetObjectKey(rs[0]), "route name found")
@@ -229,7 +229,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 
 				l := ls[0]
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 
 				// listener accepts both routes: attachment policy is All
 				assert.Len(t, rs, 2, "route found")
@@ -240,7 +240,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 					"route name found")
 
 				l = ls[1]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				// listener rejects route from different namespace as attachment policy is Same
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, "testnamespace/udproute-testnamespace", store.GetObjectKey(rs[0]),
@@ -331,7 +331,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 
 				l := ls[0]
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 
 				// listener accepts only one route: attachment policy is Selector
 				assert.Len(t, rs, 1, "route found")
@@ -339,14 +339,14 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 					"route name found")
 
 				l = ls[1]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				// listener rejects route from different namespace as attachment policy is Same
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, "testnamespace/udproute-testnamespace", store.GetObjectKey(rs[0]),
 					"route name found")
 
 				l = ls[2]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				// listener accepts only one route: attachment policy is Selector
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, "dummy-namespace/udproute-dummy-namespace", store.GetObjectKey(rs[0]),
@@ -382,7 +382,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-correct-listener-name"),
 					store.GetObjectKey(rs[0]), "route name found")
@@ -417,7 +417,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 0, "route not found")
 			},
 		},
@@ -463,7 +463,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-correct-listener-name"),
 					store.GetObjectKey(rs[0]), "route name found")
@@ -505,7 +505,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 
 				l := ls[0]
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 
 				assert.Len(t, rs, 2, "route found")
 				keys := []string{store.GetObjectKey(rs[0]), store.GetObjectKey(rs[1])}
@@ -516,7 +516,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 					"route name found")
 
 				l = ls[1]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, fmt.Sprintf("%s/%s", testutils.TestNsName, "udproute-namespace-correct-name-2"),
 					store.GetObjectKey(rs[0]), "route name found")
@@ -579,7 +579,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 
 				l := ls[0]
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 
 				// gw accepts route from other namespace as attachment policy is All
 				assert.Len(t, rs, 1, "route found")
@@ -588,7 +588,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 					"route found")
 
 				l = ls[1]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				// gw rejects route from other namespace as attachment policy is Same
 				assert.Len(t, rs, 0, "route found")
 			},
@@ -687,7 +687,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 
 				l := ls[0]
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 
 				// gw accepts route from other namespace as attachment policy is All
 				assert.Len(t, rs, 1, "route found")
@@ -695,12 +695,12 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 					store.GetObjectKey(rs[0]), "route found")
 
 				l = ls[1]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				// does not match sectionname
 				assert.Len(t, rs, 0, "route found")
 
 				l = ls[2]
-				rs = r.getUDPRoutes4Listener(gw, &l)
+				rs = r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				assert.Equal(t, "testnamespace/udproute-testnamespace",
 					store.GetObjectKey(rs[0]), "route name found")
@@ -726,19 +726,19 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
 				initRouteStatus(ro)
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, gc.GetName())
 				assert.True(t, exists)
 				assert.True(t, accepted)
 				setRouteConditionStatus(ro, &p, config.ControllerName, exists, accepted, nil)
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -802,21 +802,21 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				ls := gw.Spec.Listeners
 				l := ls[0]
 
-				rs := r.getUDPRoutes4Listener(gw, &l)
+				rs := r.getRoutes4Listener(gw, &l)
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
 				initRouteStatus(ro)
-				for i := range ro.Spec.ParentRefs {
-					p := ro.Spec.ParentRefs[i]
+				for i := range ro.GetParentRefs() {
+					p := ro.GetParentRefs()[i]
 					parentExists, parentAccept := r.isParentAcceptingRoute(ro, &p, "")
 					setRouteConditionStatus(ro, &p, config.ControllerName, parentExists, parentAccept, nil)
 				}
 
-				assert.Len(t, ro.Status.Parents, 3, "parent status len")
+				assert.Len(t, ro.GetRouteStatus().Parents, 3, "parent status len")
 
-				p := ro.Spec.ParentRefs[0]
-				parentStatus := ro.Status.Parents[0]
+				p := ro.GetParentRefs()[0]
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -846,8 +846,8 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				assert.Equal(t, int64(0), d.ObservedGeneration, "gen")
 				assert.Equal(t, "ResolvedRefs", d.Reason, "reason")
 
-				p = ro.Spec.ParentRefs[1]
-				parentStatus = ro.Status.Parents[1]
+				p = ro.GetParentRefs()[1]
+				parentStatus = ro.GetRouteStatus().Parents[1]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -877,8 +877,8 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				assert.Equal(t, int64(0), d.ObservedGeneration, "gen")
 				assert.Equal(t, "ResolvedRefs", d.Reason, "reason")
 
-				p = ro.Spec.ParentRefs[2]
-				parentStatus = ro.Status.Parents[2]
+				p = ro.GetParentRefs()[2]
+				parentStatus = ro.GetRouteStatus().Parents[2]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -928,19 +928,19 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				gc, err := r.getGatewayClass()
 				assert.NoError(t, err, "gw-class found")
 
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
 				initRouteStatus(ro)
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, gc.GetName())
 				assert.True(t, exists)
 				assert.False(t, accepted)
 				setRouteConditionStatus(ro, &p, config.ControllerName, exists, accepted, nil)
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p, parentStatus.ParentRef, "status parent ref")
 
@@ -1001,19 +1001,19 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				gc, err := r.getGatewayClass()
 				assert.NoError(t, err, "gw-class found")
 
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
 				initRouteStatus(ro)
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, gc.GetName())
 				assert.True(t, exists)
 				assert.True(t, accepted)
 				setRouteConditionStatus(ro, &p, config.ControllerName, exists, accepted, nil)
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p, parentStatus.ParentRef, "status parent ref")
 
@@ -1058,19 +1058,19 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				gc, err := r.getGatewayClass()
 				assert.NoError(t, err, "gw-class found")
 
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
 				initRouteStatus(ro)
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, gc.GetName())
 				assert.True(t, exists)
 				assert.False(t, accepted)
 				setRouteConditionStatus(ro, &p, config.ControllerName, exists, accepted, nil)
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p, parentStatus.ParentRef, "status parent ref")
 
@@ -1113,7 +1113,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				gc, err := r.getGatewayClass()
 				assert.NoError(t, err, "gw-class found")
 
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
@@ -1123,14 +1123,14 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				assert.True(t, IsNonCriticalError(err, BackendNotFound), "backend not found")
 
 				initRouteStatus(ro)
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, gc.GetName())
 				assert.True(t, exists)
 				assert.True(t, accepted)
 				setRouteConditionStatus(ro, &p, config.ControllerName, exists, accepted, err)
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")
@@ -1192,7 +1192,7 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				gc, err := r.getGatewayClass()
 				assert.NoError(t, err, "gw-class found")
 
-				rs := r.allUDPRoutes()
+				rs := r.allRoutes()
 				assert.Len(t, rs, 1, "route found")
 				ro := rs[0]
 
@@ -1202,14 +1202,14 @@ func TestRenderUDPRouteUtil(t *testing.T) {
 				assert.True(t, IsNonCriticalError(err, BackendNotFound), "backend not found")
 
 				initRouteStatus(ro)
-				p := ro.Spec.ParentRefs[0]
+				p := ro.GetParentRefs()[0]
 				exists, accepted := r.isParentAcceptingRoute(ro, &p, gc.GetName())
 				assert.True(t, exists)
 				assert.True(t, accepted)
 				setRouteConditionStatus(ro, &p, config.ControllerName, exists, accepted, err)
 
-				assert.Len(t, ro.Status.Parents, 1, "parent status len")
-				parentStatus := ro.Status.Parents[0]
+				assert.Len(t, ro.GetRouteStatus().Parents, 1, "parent status len")
+				parentStatus := ro.GetRouteStatus().Parents[0]
 
 				assert.Equal(t, p.Group, parentStatus.ParentRef.Group, "status parent ref group")
 				assert.Equal(t, p.Kind, parentStatus.ParentRef.Kind, "status parent ref kind")

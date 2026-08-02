@@ -290,7 +290,7 @@ func (r *renderer) renderForGateways(c *RenderContext) error {
 
 			log.V(3).Info("Obtaining routes", "gateway", store.GetObjectKey(gw), "listener",
 				l.Name)
-			rs := r.getUDPRoutes4Listener(gw, &l)
+			rs := r.getRoutes4Listener(gw, &l)
 
 			if isListenerConflicted(&l, udpPorts, tcpPorts) {
 				log.Info("Listener protocol/port conflict", "gateway", store.GetObjectKey(gw),
@@ -325,7 +325,7 @@ func (r *renderer) renderForGateways(c *RenderContext) error {
 
 	log.V(1).Info("Processing UDPRoutes")
 	conf.Clusters = []stnrconfv1.ClusterConfig{}
-	for _, ro := range r.allUDPRoutes() {
+	for _, ro := range r.allRoutes() {
 		log.V(2).Info("Considering", "route", ro.GetName())
 
 		if !r.isRouteControlled(ro) {
@@ -335,8 +335,9 @@ func (r *renderer) renderForGateways(c *RenderContext) error {
 		initRouteStatus(ro)
 
 		renderRoute := false
-		for i := range ro.Spec.ParentRefs {
-			p := ro.Spec.ParentRefs[i]
+		parents := ro.GetParentRefs()
+		for i := range parents {
+			p := parents[i]
 
 			parentOutContext := r.isParentOutContext(c.gws, ro, &p)
 			parentExists, parentAccept := r.isParentAcceptingRoute(ro, &p, gc.GetName())
@@ -365,22 +366,15 @@ func (r *renderer) renderForGateways(c *RenderContext) error {
 
 		// set status: we can do this only once we know whether (1) the parent accepted the
 		// route and (2) the backend refs were successfully resolved
-		for i := range ro.Spec.ParentRefs {
-			p := ro.Spec.ParentRefs[i]
+		for i := range parents {
+			p := parents[i]
 
 			// set className="" -> do not consider class of the gw for setting the status
 			parentExists, parentAccept := r.isParentAcceptingRoute(ro, &p, "")
 			setRouteConditionStatus(ro, &p, config.ControllerName, parentExists, parentAccept, err)
 		}
 
-		// schedule for update: note that we may process the same UDPRoute several times,
-		// in the context of different Gateways: Upsert makes sure the last render will be
-		// updated
-		if isRouteV1A2(ro) {
-			c.update.UpsertQueue.UDPRoutesV1A2.Upsert(statusTargetV1A2UDPRoute(ro))
-		} else {
-			c.update.UpsertQueue.UDPRoutes.Upsert(ro.DeepCopy())
-		}
+		queueRouteStatusUpdate(c, ro)
 	}
 	r.invalidateMaskedRoutes(c)
 	r.log.Info("Update queue ready", "queue", c.update.String())
@@ -542,13 +536,14 @@ func (r *renderer) invalidateGateways(c *RenderContext, reason error) {
 	}
 
 	log.V(1).Info("Processing UDPRoutes")
-	for _, ro := range r.allUDPRoutes() {
+	for _, ro := range r.allRoutes() {
 		log.V(2).Info("Considering", "route", ro.GetName())
 
 		initRouteStatus(ro)
 
-		for i := range ro.Spec.ParentRefs {
-			p := ro.Spec.ParentRefs[i]
+		parents := ro.GetParentRefs()
+		for i := range parents {
+			p := parents[i]
 
 			// skip if we are not responsible
 			if r.isParentOutContext(c.gws, ro, &p) {
@@ -563,11 +558,7 @@ func (r *renderer) invalidateGateways(c *RenderContext, reason error) {
 			setRouteConditionStatus(ro, &p, config.ControllerName, parentExists, parendAccepted, err)
 		}
 
-		if isRouteV1A2(ro) {
-			c.update.UpsertQueue.UDPRoutesV1A2.Upsert(statusTargetV1A2UDPRoute(ro))
-		} else {
-			c.update.UpsertQueue.UDPRoutes.Upsert(ro.DeepCopy())
-		}
+		queueRouteStatusUpdate(c, ro)
 	}
 }
 
