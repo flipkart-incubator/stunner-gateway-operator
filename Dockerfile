@@ -1,7 +1,7 @@
 ###########
 # Build the manager binary
-# ponytail: FK internal network blocks Docker Hub / gcr.io — use edge docker-external mirror
-FROM edge.fkinternal.com/docker-external/golang:1.26-alpine AS builder
+# ponytail: FK internal — docker-hub mirror; bitnami/golang is Debian (apt, not apk)
+FROM jfrog.fkinternal.com/docker-hub/bitnami/golang:sha256__f28d9375e132b714cea0d01eb2e7fe9433f60d6e1f2be0f517db67f0eb17adb7 AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -20,21 +20,15 @@ COPY pkg/config/ pkg/config/
 # Build
 COPY .git ./
 COPY Makefile ./
-RUN apk add --no-cache git make bash
+RUN apt-get update && apt-get install -y --no-install-recommends git make bash \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apkArch="$(apk --print-arch)"; \
-      case "$apkArch" in \
-        aarch64) export GOARCH='arm64' ;; \
-        *) export GOARCH='amd64' ;; \
-      esac; \
-    export CGO_ENABLED=0; \
-    export GOOS=linux; \
-    make build-bin
+RUN export CGO_ENABLED=0 GOOS=linux GOARCH=amd64 && make build-bin
 
 ###########
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM edge.fkinternal.com/docker-external/distroless/static:nonroot
+FROM jfrog.fkinternal.com/appsec.local/distroless-static-debian:nonroot
 
 WORKDIR /
 COPY --from=builder /workspace/bin/manager .

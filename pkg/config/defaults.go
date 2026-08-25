@@ -18,10 +18,6 @@ import (
 // - all resources must have an owner-reference to a Gateway or a GatewayConfig (stunnerd-config ConfigMap in legacy dataplane mode) for the operator to pick them up
 
 const (
-	// EnvVarSecretWatchNamespaces limits Secret informer cache to comma-separated namespaces
-	// when set; unset keeps upstream cluster-wide Secret watch.
-	EnvVarSecretWatchNamespaces = "STUNNER_GATEWAY_OPERATOR_SECRET_WATCH_NAMESPACES"
-
 	// DefaultControllerName is a unique identifier which indicates this operator's name.
 	DefaultControllerName = "stunner.l7mp.io/gateway-operator"
 
