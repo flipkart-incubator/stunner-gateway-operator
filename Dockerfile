@@ -1,7 +1,7 @@
 ###########
 # Build the manager binary
 # ponytail: FK internal — docker-hub mirror; bitnami/golang is Debian (apt, not apk)
-FROM jfrog.fkinternal.com/appsec.local/distroless-static-debian:nonroot AS builder
+FROM jfrog.fkinternal.com/docker-hub/amd64/golang:latest AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
