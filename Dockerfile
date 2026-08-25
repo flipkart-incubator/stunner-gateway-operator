@@ -14,12 +14,11 @@ COPY api/ api/
 COPY internal/ internal/
 COPY pkg/config/ pkg/config/
 
-COPY .git ./
-COPY Makefile ./
-RUN apt-get update && apt-get install -y --no-install-recommends git make bash \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN export CGO_ENABLED=0 GOOS=linux GOARCH=amd64 && make build-bin
+ARG VERSION=dev
+ARG COMMIT_HASH=unknown
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath \
+    -ldflags "-s -w -X main.version=${VERSION} -X main.commitHash=${COMMIT_HASH} -X main.buildDate=$(date +%FT%T%z)" \
+    -o bin/manager main.go
 
 ###########
 FROM --platform=linux/amd64 jfrog.fkinternal.com/appsec.local/distroless-static-debian:nonroot
