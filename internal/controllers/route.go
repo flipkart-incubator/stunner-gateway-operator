@@ -100,25 +100,32 @@ func NewRouteController(mgr manager.Manager, ch event.EventChannel, log logr.Log
 		return nil, err
 	}
 
-	// watch TCPRoute objects
-	if err := c.Watch(
-		source.Kind(mgr.GetCache(), &stnrgwv1.TCPRoute{},
-			&handler.TypedEnqueueRequestForObject[*stnrgwv1.TCPRoute]{},
-			predicate.TypedGenerationChangedPredicate[*stnrgwv1.TCPRoute]{}),
-	); err != nil {
+	// watch STUNner-native TCPRoute objects when the CRD is installed (optional on cluster)
+	stunnerTCPRouteServed, err := r.isRouteResourceServed(mgr, &stnrgwv1.TCPRoute{}, "tcproutes")
+	if err != nil {
 		return nil, err
 	}
-	r.log.Info("Watching TCPRoute objects")
+	if stunnerTCPRouteServed {
+		if err := c.Watch(
+			source.Kind(mgr.GetCache(), &stnrgwv1.TCPRoute{},
+				&handler.TypedEnqueueRequestForObject[*stnrgwv1.TCPRoute]{},
+				predicate.TypedGenerationChangedPredicate[*stnrgwv1.TCPRoute]{}),
+		); err != nil {
+			return nil, err
+		}
+		r.log.Info("Watching TCPRoute objects")
 
-	// index TCPRoute objects as per the referenced Services and StaticServices
-	if err := mgr.GetFieldIndexer().IndexField(ctx, &stnrgwv1.TCPRoute{},
-		serviceTCPRouteIndex, serviceRouteIndexFunc); err != nil {
-		return nil, err
-	}
+		if err := mgr.GetFieldIndexer().IndexField(ctx, &stnrgwv1.TCPRoute{},
+			serviceTCPRouteIndex, serviceRouteIndexFunc); err != nil {
+			return nil, err
+		}
 
-	if err := mgr.GetFieldIndexer().IndexField(ctx, &stnrgwv1.TCPRoute{},
-		staticServiceTCPRouteIndex, staticServiceRouteIndexFunc); err != nil {
-		return nil, err
+		if err := mgr.GetFieldIndexer().IndexField(ctx, &stnrgwv1.TCPRoute{},
+			staticServiceTCPRouteIndex, staticServiceRouteIndexFunc); err != nil {
+			return nil, err
+		}
+	} else {
+		r.log.Info("STUNner TCPRoute CRD not available, skipping")
 	}
 
 	// watch the official Gateway API UDPRoute objects at the served version (only when the
