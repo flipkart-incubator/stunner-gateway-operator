@@ -180,54 +180,59 @@ func NewRouteController(mgr manager.Manager, ch event.EventChannel, log logr.Log
 		r.log.V(1).Info("Gateway API UDPRoute CRD not available, skipping")
 	}
 
-	// watch the official Gateway API TCPRoute objects at the served version
-	r.tcpRouteVersion, err = r.gwAPIRouteVersion(mgr, &gwapiv1.TCPRoute{}, &gwapiv1a2.TCPRoute{}, "tcproutes")
-	if err != nil {
-		return nil, err
-	}
-	config.GwAPITCPRouteVersion = r.tcpRouteVersion
+	// Gateway API TCPRoute: only when STUNner TCPRoute CRD is installed (UDP-only clusters skip)
+	if stunnerTCPRouteServed {
+		r.tcpRouteVersion, err = r.gwAPIRouteVersion(mgr, &gwapiv1.TCPRoute{}, &gwapiv1a2.TCPRoute{}, "tcproutes")
+		if err != nil {
+			return nil, err
+		}
+		config.GwAPITCPRouteVersion = r.tcpRouteVersion
 
-	switch r.tcpRouteVersion {
-	case config.GwAPIVersionV1:
-		if err := c.Watch(
-			source.Kind(mgr.GetCache(), &gwapiv1.TCPRoute{},
-				&handler.TypedEnqueueRequestForObject[*gwapiv1.TCPRoute]{},
-				predicate.TypedGenerationChangedPredicate[*gwapiv1.TCPRoute]{}),
-		); err != nil {
-			return nil, err
-		}
+		switch r.tcpRouteVersion {
+		case config.GwAPIVersionV1:
+			if err := c.Watch(
+				source.Kind(mgr.GetCache(), &gwapiv1.TCPRoute{},
+					&handler.TypedEnqueueRequestForObject[*gwapiv1.TCPRoute]{},
+					predicate.TypedGenerationChangedPredicate[*gwapiv1.TCPRoute]{}),
+			); err != nil {
+				return nil, err
+			}
 
-		if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1.TCPRoute{},
-			serviceTCPRouteIndexGwAPI, serviceRouteIndexFunc); err != nil {
-			return nil, err
-		}
+			if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1.TCPRoute{},
+				serviceTCPRouteIndexGwAPI, serviceRouteIndexFunc); err != nil {
+				return nil, err
+			}
 
-		if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1.TCPRoute{},
-			staticServiceTCPRouteIndexGwAPI, staticServiceRouteIndexFunc); err != nil {
-			return nil, err
-		}
-		r.log.Info("Watching Gateway API v1 TCPRoute objects")
-	case config.GwAPIVersionV1A2:
-		if err := c.Watch(
-			source.Kind(mgr.GetCache(), &gwapiv1a2.TCPRoute{},
-				&handler.TypedEnqueueRequestForObject[*gwapiv1a2.TCPRoute]{},
-				predicate.TypedGenerationChangedPredicate[*gwapiv1a2.TCPRoute]{}),
-		); err != nil {
-			return nil, err
-		}
+			if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1.TCPRoute{},
+				staticServiceTCPRouteIndexGwAPI, staticServiceRouteIndexFunc); err != nil {
+				return nil, err
+			}
+			r.log.Info("Watching Gateway API v1 TCPRoute objects")
+		case config.GwAPIVersionV1A2:
+			if err := c.Watch(
+				source.Kind(mgr.GetCache(), &gwapiv1a2.TCPRoute{},
+					&handler.TypedEnqueueRequestForObject[*gwapiv1a2.TCPRoute]{},
+					predicate.TypedGenerationChangedPredicate[*gwapiv1a2.TCPRoute]{}),
+			); err != nil {
+				return nil, err
+			}
 
-		if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1a2.TCPRoute{},
-			serviceTCPRouteIndexGwAPI, serviceRouteIndexFunc); err != nil {
-			return nil, err
-		}
+			if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1a2.TCPRoute{},
+				serviceTCPRouteIndexGwAPI, serviceRouteIndexFunc); err != nil {
+				return nil, err
+			}
 
-		if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1a2.TCPRoute{},
-			staticServiceTCPRouteIndexGwAPI, staticServiceRouteIndexFunc); err != nil {
-			return nil, err
+			if err := mgr.GetFieldIndexer().IndexField(ctx, &gwapiv1a2.TCPRoute{},
+				staticServiceTCPRouteIndexGwAPI, staticServiceRouteIndexFunc); err != nil {
+				return nil, err
+			}
+			r.log.Info("Watching Gateway API v1alpha2 TCPRoute objects")
+		default:
+			r.log.V(1).Info("Gateway API TCPRoute CRD not available, skipping")
 		}
-		r.log.Info("Watching Gateway API v1alpha2 TCPRoute objects")
-	default:
-		r.log.V(1).Info("Gateway API TCPRoute CRD not available, skipping")
+	} else {
+		config.GwAPITCPRouteVersion = config.GwAPIVersionUnavailable
+		r.log.Info("Gateway API TCPRoute watch skipped (STUNner TCPRoute CRD not installed)")
 	}
 
 	// a label-selector predicate to select the loadbalancer services we are interested in
