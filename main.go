@@ -30,10 +30,13 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"go.uber.org/zap/zapcore"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
@@ -187,8 +190,16 @@ func main() {
 
 	setupLog.Info("setting up Kubernetes controller manager")
 
+	secretWatchNamespaces := secretWatchNamespacesFromEnv()
+	if len(secretWatchNamespaces) > 0 {
+		setupLog.Info("namespace-scoped Secret watch", "namespaces", secretWatchNamespaces)
+	} else {
+		setupLog.Info("cluster-wide Secret watch (set STUNNER_GATEWAY_OPERATOR_SECRET_WATCH_NAMESPACES to scope)")
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme: scheme,
+		Cache:  managerCacheOptions(secretWatchNamespaces),
 		Metrics: metricsserver.Options{
 			BindAddress: metricsAddr,
 		},
@@ -296,4 +307,43 @@ func resolvePprofBindAddress(pprofAddr string) string {
 	}
 
 	return pprofAddr
+}
+
+func secretWatchNamespacesFromEnv() []string {
+	raw, ok := os.LookupEnv(opdefault.EnvVarSecretWatchNamespaces)
+	if !ok || strings.TrimSpace(raw) == "" {
+		return nil
+	}
+
+	seen := make(map[string]struct{})
+	var out []string
+	for _, ns := range strings.Split(raw, ",") {
+		ns = strings.TrimSpace(ns)
+		if ns == "" {
+			continue
+		}
+		if _, dup := seen[ns]; dup {
+			continue
+		}
+		seen[ns] = struct{}{}
+		out = append(out, ns)
+	}
+	return out
+}
+
+func managerCacheOptions(secretNamespaces []string) cache.Options {
+	if len(secretNamespaces) == 0 {
+		return cache.Options{}
+	}
+
+	nsMap := make(map[string]cache.Config, len(secretNamespaces))
+	for _, ns := range secretNamespaces {
+		nsMap[ns] = cache.Config{}
+	}
+
+	return cache.Options{
+		ByObject: map[client.Object]cache.ByObject{
+			&corev1.Secret{}: {Namespaces: nsMap},
+		},
+	}
 }
