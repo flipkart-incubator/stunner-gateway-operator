@@ -1,6 +1,7 @@
 ###########
 # Build the manager binary
-FROM golang:1.26-alpine AS builder
+# ponytail: FK internal network blocks Docker Hub / gcr.io — use JFrog docker-external mirror
+FROM jfrog.fkinternal.com/docker-external/golang:1.26-alpine AS builder
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -33,7 +34,7 @@ RUN apkArch="$(apk --print-arch)"; \
 ###########
 # Use distroless as minimal base image to package the manager binary
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+FROM jfrog.fkinternal.com/docker-external/distroless/static:nonroot
 
 WORKDIR /
 COPY --from=builder /workspace/bin/manager .
